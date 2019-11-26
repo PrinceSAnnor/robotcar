@@ -1,6 +1,7 @@
 #include "Wire.h"
 #include "sensorbar.h"
 
+
 #define trigger A0
 #define echoLeft 2
 #define S0 3
@@ -18,7 +19,10 @@
 const uint8_t SX1509_ADDRESS = 0x3E;
 SensorBar mySensorBar(SX1509_ADDRESS);
 
-int lRSpeed = 90;
+uint8_t state;
+
+//int lRSpeed = 90;
+int lRSpeed = 15;
 int mSpeed = 20;
 int leftFwr = LOW;
 int rightFWr = HIGH;
@@ -35,13 +39,21 @@ int distanceRight;
 long durationCenter;
 int distanceCenter;
 
+#define RIGHT_WHEEL_POL 1
+#define LEFT_WHEEL_POL 1
+#define IDLE_STATE 0
+#define READ_LINE 1
+#define GO_FORWARD 2
+#define GO_LEFT 3
+#define GO_RIGHT 4
+
 void moveLeft()
 {
   digitalWrite(rightDir, rightFWr);
   analogWrite(rightPWM, lRSpeed);
   digitalWrite(leftDir, !leftFwr);
   analogWrite(leftPWM, lRSpeed);
-  delay(500);
+  delay(200);
 }
 
 void moveFwd()
@@ -66,7 +78,7 @@ void moveRight()
   analogWrite(rightPWM, lRSpeed);
   digitalWrite(leftDir, leftFwr);
   analogWrite(leftPWM, lRSpeed);
-  delay(500);
+  delay(200);
 }
 
 void stopMoving()
@@ -76,6 +88,7 @@ void stopMoving()
   digitalWrite(leftDir, leftFwr);
   analogWrite(leftPWM, 0);
 }
+
 void setForGreen(){
   digitalWrite(S2,HIGH);
   digitalWrite(S3,HIGH);
@@ -125,6 +138,7 @@ void setup()
 
 void loop()
 {
+  /*
   setForGreen();
   greenRight = pulseIn(OUTRight, LOW);
   greenLeft = pulseIn(OUTLeft, LOW);
@@ -149,10 +163,11 @@ void loop()
   Serial.print(" RLeft:");
   Serial.println(redLeft);
   //delay(100);
-  
+  */
   uint8_t rawValue = mySensorBar.getRaw();
+  Serial.println(rawValue);
   Serial.print("Bin value of input: ");
-  for( int i = 7; i >= 0; i-- )
+  for( int i = 6; i >= 0; i-- )
   {
     Serial.print((rawValue >> i) & 0x01);
   }
@@ -169,12 +184,14 @@ void loop()
   
   //Print the position and density quantities
   Serial.print("Position (-127 to 127): ");
-  Serial.println(mySensorBar.getPosition());
+  int pos = mySensorBar.getPosition();
+  Serial.println(pos);
   Serial.print("Density, bits detected (of 8): ");
-  Serial.println(mySensorBar.getDensity());
+  int density = mySensorBar.getDensity();
+  Serial.println(density);
   Serial.println("");
   //delay(666);
-
+/*
   digitalWrite(trigger, LOW);
   delayMicroseconds(2);
   // Sets the trigPin on HIGH state for 10 micro seconds
@@ -212,6 +229,40 @@ void loop()
   Serial.print(distanceRight);
   Serial.print(" DistanceCenter: ");
   Serial.println(distanceCenter);
+  */
   //Wait 2/3 of a second
-  delay(666);
+  int range = 25;
+
+  if(pos < range && pos > -range){//go forward
+    Serial.println("FORWARD ");
+    moveFwd();
+    //delay(50);
+   }
+  else if(pos >= range && pos !=127){//go left
+    Serial.print("RIGHT ");
+    float strengthRatio = pos / 126.0;
+    lRSpeed = 15 + strengthRatio * 60;
+    Serial.println(lRSpeed);
+    stopMoving();
+    moveRight();
+   }
+  else if(pos <= -range && pos !=-127){//go right
+    Serial.print("LEFT ");
+    Serial.print(lRSpeed);
+    Serial.print(" pos ");
+    Serial.print(pos);
+    Serial.print(" ratio ");
+    double strengthRatio = pos / -126.0;
+    Serial.print(strengthRatio);
+    lRSpeed = 15 + strengthRatio * 60;
+    stopMoving();
+    moveLeft();
+    
+   }
+  else{
+    moveFwd();
+    //moveLeft();
+  }
+  //stopMoving();
+  //delay(666);
 }
