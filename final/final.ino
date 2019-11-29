@@ -179,7 +179,8 @@ void loop()
     lookAroundLineFollower();
   }
   else if( state==2 ){
-     
+     moveFwd();
+     delay(300);
   }
  
   //stopMoving();
