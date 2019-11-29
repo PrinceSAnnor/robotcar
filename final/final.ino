@@ -1,6 +1,5 @@
 #include "Wire.h"
 #include "sensorbar.h"
-#define ENC_COUNT_REV 374
 
 #define trigger A0
 //#define echoLeft 2
@@ -23,7 +22,6 @@ SensorBar mySensorBar(SX1509_ADDRESS);
 
 uint8_t state=0;
 
-//int lRSpeed = 90;
 int lRSpeed = 15;
 int mSpeed = 20;
 int leftFwr = LOW;
@@ -42,10 +40,12 @@ long durationCenter;
 int distanceCenter;
 int pos = 0;
 int density = 0;
-float rpm = 0.0;
+
 volatile long encoderValueR = 0;
 volatile long encoderValueL = 0;
- 
+
+const int TOL = 15;
+int toleration = TOL;
 void setup()
 {
   pinMode(rightDir, OUTPUT);
@@ -67,8 +67,8 @@ void setup()
 
   //digitalWrite(S0,HIGH);//20% frequency scaling
   
-  attachInterrupt(digitalPinToInterrupt(EncR), updateEncoderR, RISING);
-  attachInterrupt(digitalPinToInterrupt(EncL), updateEncoderL, RISING);
+  attachInterrupt(0, updateEncoderR, RISING);
+  attachInterrupt(1, updateEncoderL, RISING);
   mySensorBar.setBarStrobe();//only turn on IR during reads
   mySensorBar.clearInvertBits();//Default dark on light
   uint8_t returnStatus = mySensorBar.begin();
@@ -179,9 +179,7 @@ void loop()
     lookAroundLineFollower();
   }
   else if( state==2 ){
-     moveFwd();
-     delay(500);
-     state = 1;
+     
   }
  
   //stopMoving();
@@ -191,88 +189,117 @@ void loop()
 
 void lookAroundLineFollower(){
   delay(100);
-  lRSpeed = 15;
-  Serial.println("TURNING LEFT TO CHECK");
-  for( int i = 8; i >= 0; i-- )
-  {
-    stopMoving();
-    turn(-10);
-    density = mySensorBar.getDensity();
-    delay(100);
-    Serial.println(density);
-    if( density > 1  ){
-      pos = mySensorBar.getPosition();
-      Serial.println(pos);
-      exit(1);
-      stopMoving();
-      state = 0;
-      pos = mySensorBar.getPosition();
-      Serial.println(pos);
-      defaultLineFollower();
-      return;
-    }
-  }
-  turnBack(80);
-  
-  //turn right
   Serial.println("TURNING RIGHT TO CHECK");
   for( int i = 8; i >= 0; i-- )
   {
     stopMoving();
-    turn(10);
+    turnBack(10);
     density = mySensorBar.getDensity();
     delay(100);
     Serial.println(density);
     if( density > 1  ){
       stopMoving();
-      pos = mySensorBar.getPosition();
-      Serial.println(pos);
-      exit(1);
+      Serial.println("LINE ON RIGHT");
+      //moveBck();
+      //delay(100);
+      mSpeed = 40;
+      turn(10);
+      turnBack(10);
+      turn(10);
+      turnBack(10);
+      turn(10);
+      turnBack(10);
+      turn(10);
+      turnBack(10);
+      turn(10);
+      turnBack(10);
+      turn(10);
+      mSpeed = 20;
+      //turn(20);
+      //turnBack(20);
+      moveFwd();
+      delay(500);
       stopMoving();
       state = 0;
-      pos = mySensorBar.getPosition();
-      Serial.println(pos);
-      defaultLineFollower();
+      //while(1);
       return;
     }
   }
-  turnBack(-80);
+  turn(-80);
+  
+  //turn right
+  Serial.println("TURNING LEFT TO CHECK");
+  for( int i = 8; i >= 0; i-- )
+  {
+    stopMoving();
+    turnBack(-10);
+    density = mySensorBar.getDensity();
+    delay(100);
+    Serial.println(density);
+    if( density > 1  ){
+      stopMoving();
+      mSpeed = 40;
+      turn(-10);
+      turnBack(-10);
+      turn(-10);
+      turnBack(-10);
+      turn(-10);
+      turnBack(-10);
+      turn(-10);
+      turnBack(-10);
+      turn(-10);
+      turnBack(-10);
+      turn(-10);
+      mSpeed = 20;
+      //turn(20);
+      //turnBack(20);
+      moveFwd();
+      delay(500);
+      stopMoving();
+      state = 0;
+      return;
+    }
+  }
+  turn(80);
   stopMoving();
-  state = 2;  
+  state = 2;
+  return;  
 }
 
 void defaultLineFollower(){
   int range = 35;
   if(density == 0){
-    stopMoving();
-    state = 1;
+    toleration -= 1;
+    moveFwd();
+    if(toleration < 0){
+      stopMoving();
+      state = 1;
+      toleration = TOL;
+     }
   }
   else if(pos < range && pos > -range){//go forward
     Serial.println("FORWARD ");
+    toleration = TOL;
     moveFwd();
-    //delay(50);
+    delay(100);
    }
-  else if(pos >= range){//go right
+  else if(pos >= range){//go left
     Serial.print("RIGHT ");
+    toleration = TOL;
     float strengthRatio = pos / 126.0;
-    lRSpeed = 15 + strengthRatio * 60;
+    lRSpeed = 15 + strengthRatio * 20;
     stopMoving();
-    //moveRight();
-    turn(strengthRatio*40 + 10);
+    moveRight();
    }
-  else if(pos <= -range){//go left
-    Serial.print("LEFT ");
-    Serial.print(lRSpeed);
-    Serial.print(" pos ");
-    Serial.print(pos);
-    Serial.print(" ratio ");
+  else if(pos <= -range){//go right
     double strengthRatio = pos / -126.0;
-    Serial.print(strengthRatio);
-    //lRSpeed = 15 + strengthRatio * 60;
+    toleration = TOL;
+    lRSpeed = 15 + strengthRatio * 20;
     stopMoving();
-    turn(-strengthRatio*40 - 10);
-    
+    moveLeft();
    }
+   stopMoving();
+   return;
 }
 
 void moveFwd()
@@ -291,23 +318,6 @@ void moveBck()
   analogWrite(leftPWM, mSpeed);
 }
 
-float getRightSpeed(){
-  rpm = (float)(encoderValueR * 60 / ENC_COUNT_REV);
-  encoderValueR = 0;
-  //Serial.print("SPEED ");
-  //Serial.println(rpm);
-  delay(100);
-  return rpm;
-}
-
-float getLeftSpeed(){
-  rpm = (float)(encoderValueL * 60 / ENC_COUNT_REV);
-  encoderValueL = 0;
-  //Serial.print("SPEED ");
-  //Serial.println(rpm);
-  delay(100);
-  return rpm;
-}
 
 void updateEncoderR()
 {
@@ -331,72 +341,73 @@ void stopLeft(){
   analogWrite(leftPWM, 0);
 }
 
-void turn(float deg){
-  //220 to -90
-  //440 to -180
-  deg = map(deg, -180, 180, 440, -440);
-  Serial.println("DEG");
-  Serial.println(deg);
-  float distance = 0.0;
-  if(deg > 0.0){
-    while(distance < deg){
-      digitalWrite(rightDir, rightFWr);
-      analogWrite(rightPWM, mSpeed);
-      distance = distance + getRightSpeed();
-      //Serial.print("SPEED ");
-      Serial.println(distance);
-    }
+void turn(int deg){
+  if(deg > 0){
+    deg = map(deg, 0, 180, 0, -3100);
+  }
+  else{
+    deg = map(deg, -180, 0, 3200, 0);
+  }
+  if(deg > 0){
+    encoderValueR = 0;
+    digitalWrite(rightDir, rightFWr);
+    analogWrite(rightPWM, mSpeed);
+    while(encoderValueR < deg);
     stopRight();
   }
-  else if(deg < 0.0){
+  else if(deg < 0){
     deg = -deg;
-    while(distance < deg){
-      digitalWrite(leftDir, leftFwr);
-      analogWrite(leftPWM, mSpeed);
-      distance = distance + getLeftSpeed();
-      //Serial.print("SPEED ");
-      Serial.println(distance);
-    }
+    encoderValueL = 0;
+    digitalWrite(leftDir, leftFwr);
+    analogWrite(leftPWM, mSpeed);
+    while(encoderValueL < deg);
     stopLeft();
   }
   
 }
 
-void turnBack(float deg){
-  //220 to -90
-  //440 to -180
+void turnBack(int deg){
   if(deg > 0){
-    deg = map(deg, 0, 180, 0, 220);
+    deg = map(deg, 0, 180, 0, -1600);
   }
   else{
-    deg = map(deg, -180, 0, -800, 0);
+    deg = map(deg, -180, 0, 8500, 0);
   }
-  
-  Serial.println("DEG");
-  Serial.println(deg);
-  float distance = 0.0;
-  if(deg > 0.0){
-    while(distance < deg){
-      digitalWrite(rightDir, !rightFWr);
-      analogWrite(rightPWM, mSpeed);
-      distance = distance + getRightSpeed();
-      //Serial.print("SPEED ");
-      Serial.println(distance);
-    }
+  if(deg < 0){
+    deg = -deg;
+    encoderValueR = 0;
+    digitalWrite(rightDir, !rightFWr);
+    analogWrite(rightPWM, mSpeed);
+    while(encoderValueR < deg);
     stopRight();
   }
-  else if(deg < 0.0){
-    deg = -deg;
-    while(distance < deg){
-      digitalWrite(leftDir, !leftFwr);
-      analogWrite(leftPWM, mSpeed);
-      distance = distance + getLeftSpeed();
-      //Serial.print("SPEED ");
-      Serial.println(distance);
-    }
+  else if(deg > 0){
+    encoderValueL = 0;
+    digitalWrite(leftDir, !leftFwr);
+    analogWrite(leftPWM, mSpeed);
+    while(encoderValueL < deg);
     stopLeft();
   }
   
+}
+
+void moveLeft()
+{
+  digitalWrite(rightDir, rightFWr);
+  analogWrite(rightPWM, lRSpeed);
+  digitalWrite(leftDir, !leftFwr);
+  analogWrite(leftPWM, lRSpeed);
+  delay(200);
+}
+
+void moveRight()
+{
+  digitalWrite(rightDir, !rightFWr);
+  analogWrite(rightPWM, lRSpeed);
+  digitalWrite(leftDir, leftFwr);
+  analogWrite(leftPWM, lRSpeed);
+  delay(500);
+  delay(200);
 }
 
 void stopMoving()
