@@ -46,6 +46,12 @@ volatile long encoderValueL = 0;
 
 const int TOL = 15;
 int toleration = TOL;
+
+const int GREEN = 99000;
+const int BLUE = 99000;
+const int RED = 99000;
+uint8_t leftSensor = 0;
+uint8_t rightSensor = 0;
 void setup()
 {
   pinMode(rightDir, OUTPUT);
@@ -86,33 +92,40 @@ void setup()
 
 void loop()
 {
-  
-  /*
   setForGreen();
   greenRight = pulseIn(OUTRight, LOW);
   greenLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("GRight:");
-  Serial.print(greenRight);
-  Serial.print(" GLeft:");
-  Serial.println(greenLeft);
+  //Serial.print("GRight:");
+  //Serial.print(greenRight);
+  //Serial.print(" GLeft:");
+  //Serial.println(greenLeft);
   delay(100);
   setForBlue();
   blueRight = pulseIn(OUTRight, LOW);
   blueLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("BRight:");
-  Serial.print(blueRight);
-  Serial.print(" BLeft:");
-  Serial.println(blueLeft);
+  //Serial.print("BRight:");
+  //Serial.print(blueRight);
+  //Serial.print(" BLeft:");
+  //Serial.println(blueLeft);
   delay(100);
   setForRed();
   redRight = pulseIn(OUTRight, LOW);
   redLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("RRight:");
-  Serial.print(redRight);
-  Serial.print(" RLeft:");
-  Serial.println(redLeft);
+  //Serial.print("RRight:");
+  //Serial.print(redRight);
+  //Serial.print(" RLeft:");
+  //Serial.println(redLeft);
   //delay(100);
-  */
+  if(greenRight > GREEN && redRight > RED && blueRight > BLUE){
+    Serial.println("GREEN ON RIGHT");
+    rightSensor = 1;
+    state = 1;
+  }
+  if(greenLeft > GREEN && redLeft > RED && blueLeft > BLUE){
+    Serial.println("GREEN ON LEFT");
+    leftSensor = 1;
+    state = 1;
+  }
   Serial.print("STATE ");
   Serial.println(state);
   uint8_t rawValue = mySensorBar.getRaw();
@@ -132,7 +145,7 @@ void loop()
   Serial.println(density);
   Serial.println("");
   //delay(666);
-/*
+  /*
   digitalWrite(trigger, LOW);
   delayMicroseconds(2);
   // Sets the trigPin on HIGH state for 10 micro seconds
@@ -173,10 +186,26 @@ void loop()
   */
   //Wait 2/3 of a second
   if( state==0 ){
-    defaultLineFollower();
+    defaultLineFollower2();
   }
   else if( state==1 ){
-    lookAroundLineFollower();
+    Serial.println("COLOR LOGIC");
+    if( leftSensor == 1 && righttSensor = 1 ){//turn 180
+      turn(90);
+      turnBack(90);
+     }
+     else if( leftSensor == 1 && righttSensor = 0 ){//turn -90
+      turn(-45);
+      turnBack(-45);
+     }
+     else if( leftSensor == 0 && righttSensor = 1 ){//turn 90
+      turn(45);
+      turnBack(45);
+     }
+     leftSensor = 0;
+     rightSensor = 0;
+     state=0;
+     //lookAroundLineFollower();
   }
   else if( state==2 ){
      moveFwd();
@@ -301,6 +330,30 @@ void defaultLineFollower(){
    }
    stopMoving();
    return;
+}
+
+void defaultLineFollower2(){
+  if(density == 0){
+    stopMoving();
+  }
+  else if( getBar(3)==1 || getBar(4)==1 ){//go forward
+    Serial.println("FORWARD ");
+    moveFwd();
+    delay(20);
+   }
+  else if( getBar(1)==1 || getBar(2)==1 ){//go left
+    Serial.print("LEFT ");
+    lRSpeed = 15;
+    stopMoving();
+    moveLeft();
+   }
+  else if( getBar(5)==1 || getBar(6)==1 ){//go right
+    Serial.print("RIGHT ");
+    lRSpeed = 15;
+    stopMoving();
+    moveRight();
+   }
+   stopMoving();
 }
 
 void moveFwd()
@@ -430,4 +483,7 @@ void setForBlue(){
 void setForRed(){
   digitalWrite(S2,LOW);
   digitalWrite(S3,LOW);
+}
+int getBar(int i){
+ return (rawValue >> i) & 0x01;  
 }
