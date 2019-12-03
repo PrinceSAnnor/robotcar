@@ -48,10 +48,13 @@ volatile long encoderValueL = 0;
 const int TOL = 15;
 int toleration = TOL;
 
-int GREEN = 16;
-int BLUE = 20;
-int RED = 17;
-int colorTol = 15;
+int GREENRight = 20;
+int BLUERight = 20;
+int REDRight = 20;
+int GREENLeft = 40;
+int BLUELeft = 40;
+int REDLeft = 40;
+int colorTol = 60;
 uint8_t leftSensor = 0;
 uint8_t rightSensor = 0;
 void setup()
@@ -90,52 +93,23 @@ void setup()
     Serial.println("sx1509 IC communication FAILED!");
     while(1);
   }
+  
+  
 }
 
 void loop()
 {
-  setForGreen();
-  greenRight = pulseIn(OUTRight, LOW);
-  greenLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("GRight:");
-  Serial.print(greenRight);
-  Serial.print(" GLeft:");
-  Serial.println(greenLeft);
-  delay(100);
-  setForBlue();
-  blueRight = pulseIn(OUTRight, LOW);
-  blueLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("BRight:");
-  Serial.print(blueRight);
-  Serial.print(" BLeft:");
-  Serial.println(blueLeft);
-  delay(100);
-  setForRed();
-  redRight = pulseIn(OUTRight, LOW);
-  redLeft = pulseIn(OUTLeft, LOW);
-  Serial.print("RRight:");
-  Serial.print(redRight);
-  Serial.print(" RLeft:");
-  Serial.println(redLeft);
-  delay(100);
-  if(greenRight > GREEN && redRight > RED && blueRight > BLUE && greenRight < GREEN+colorTol && redRight < RED+colorTol && blueRight < BLUE+colorTol){
-    Serial.println("GREEN ON RIGHT");
-    rightSensor = 1;
-  }
-  if(greenLeft > GREEN && redLeft > RED && blueLeft > BLUE && greenLeft < GREEN+colorTol && redLeft < RED+colorTol && blueLeft < BLUE+colorTol){
-    Serial.println("GREEN ON LEFT");
-    leftSensor = 1;
-  }
+  
   //Serial.print("STATE ");
   //Serial.println(state);
   rawValue = mySensorBar.getRaw();
   //Serial.println(rawValue);
-  //Serial.print("Bin value of input: ");
+  Serial.print("Bin value of input: ");
   for( int i = 7; i >= 0; i-- )
   {
-    //Serial.print((rawValue >> i) & 0x01);
+    Serial.print((rawValue >> i) & 0x01);
   }
-  //Serial.println("b");
+  Serial.println("b");
 
   //Print the hex value to the serial buffer.  
   pos = mySensorBar.getPosition();
@@ -146,10 +120,45 @@ void loop()
   //Serial.println("");
   //delay(666);
   //Wait 2/3 of a second
+  
   if( state==0 ){
-    defaultLineFollower2();
+    defaultLineFollower();
+    delay(300);
   }
   else if( state==1 ){
+    setForGreen();
+    greenRight = pulseIn(OUTRight, LOW);
+    greenLeft = pulseIn(OUTLeft, LOW);
+    Serial.print("GRight:");
+    Serial.print(greenRight);
+    Serial.print(" GLeft:");
+    Serial.println(greenLeft);
+    delay(100);
+    setForBlue();
+    blueRight = pulseIn(OUTRight, LOW);
+    blueLeft = pulseIn(OUTLeft, LOW);
+    Serial.print("BRight:");
+    Serial.print(blueRight);
+    Serial.print(" BLeft:");
+    Serial.println(blueLeft);
+    delay(100);
+    setForRed();
+    redRight = pulseIn(OUTRight, LOW);
+    redLeft = pulseIn(OUTLeft, LOW);
+    Serial.print("RRight:");
+    Serial.print(redRight);
+    Serial.print(" RLeft:");
+    Serial.println(redLeft);
+    delay(100);
+    if(greenRight > GREENRight && redRight > REDRight && blueRight > BLUERight && greenRight < GREENRight+colorTol && redRight < REDRight+colorTol && blueRight < BLUERight+colorTol){
+      Serial.println("GREEN ON RIGHT");
+      rightSensor = 1;
+    }
+    if(greenLeft > GREENLeft && redLeft > REDLeft && blueLeft > BLUELeft && greenLeft < GREENLeft+colorTol && redLeft < REDLeft+colorTol && blueLeft < BLUELeft+colorTol){
+      Serial.println("GREEN ON LEFT");
+      leftSensor = 1;
+    }
+    while(1);
     Serial.println("COLOR LOGIC");
     if( leftSensor == 1 && rightSensor == 1 ){//turn 180
       Serial.println("180 TURN");
@@ -177,8 +186,6 @@ void loop()
      }
      leftSensor = 0;
      rightSensor = 0;
-     
-     //lookAroundLineFollower();
   }
   else if( state==2 ){
      moveFwd();
@@ -190,145 +197,36 @@ void loop()
 
 }
 
-void lookAroundLineFollower(){
-  delay(100);
-  Serial.println("TURNING RIGHT TO CHECK");
-  for( int i = 8; i >= 0; i-- )
-  {
-    stopMoving();
-    turnBack(10);
-    density = mySensorBar.getDensity();
-    delay(100);
-    Serial.println(density);
-    if( density > 1  ){
-      stopMoving();
-      Serial.println("LINE ON RIGHT");
-      //moveBck();
-      //delay(100);
-      mSpeed = 40;
-      turn(10);
-      turnBack(10);
-      turn(10);
-      turnBack(10);
-      turn(10);
-      turnBack(10);
-      turn(10);
-      turnBack(10);
-      turn(10);
-      turnBack(10);
-      turn(10);
-      mSpeed = 20;
-      //turn(20);
-      //turnBack(20);
-      moveFwd();
-      delay(500);
-      stopMoving();
-      state = 0;
-      //while(1);
-      return;
-    }
-  }
-  turn(-80);
-  
-  //turn right
-  Serial.println("TURNING LEFT TO CHECK");
-  for( int i = 8; i >= 0; i-- )
-  {
-    stopMoving();
-    turnBack(-10);
-    density = mySensorBar.getDensity();
-    delay(100);
-    Serial.println(density);
-    if( density > 1  ){
-      stopMoving();
-      mSpeed = 40;
-      turn(-10);
-      turnBack(-10);
-      turn(-10);
-      turnBack(-10);
-      turn(-10);
-      turnBack(-10);
-      turn(-10);
-      turnBack(-10);
-      turn(-10);
-      turnBack(-10);
-      turn(-10);
-      mSpeed = 20;
-      //turn(20);
-      //turnBack(20);
-      moveFwd();
-      delay(500);
-      stopMoving();
-      state = 0;
-      return;
-    }
-  }
-  turn(80);
-  stopMoving();
-  state = 2;
-  return;  
-}
-
 void defaultLineFollower(){
-  int range = 35;
-  if(density == 0){
-    toleration -= 1;
-    moveFwd();
-    if(toleration < 0){
-      stopMoving();
-      state = 1;
-      toleration = TOL;
-     }
-  }
-  else if(pos < range && pos > -range){//go forward
-    Serial.println("FORWARD ");
-    toleration = TOL;
-    moveFwd();
-    delay(100);
-   }
-  else if(pos >= range){//go left
-    Serial.print("RIGHT ");
-    toleration = TOL;
-    float strengthRatio = pos / 126.0;
-    lRSpeed = 15 + strengthRatio * 20;
-    stopMoving();
-    moveRight();
-   }
-  else if(pos <= -range){//go right
-    double strengthRatio = pos / -126.0;
-    toleration = TOL;
-    lRSpeed = 15 + strengthRatio * 20;
-    stopMoving();
-    moveLeft();
-   }
-   stopMoving();
-   return;
-}
-
-void defaultLineFollower2(){
   mSpeed = 40;
-  if(density == 0){
-    stopMoving();
-  }
-  else if( getBar(5)==1 ){//go left
+  if( getBar(5)==1 ){//go left
     if( getBar(4)==1 && getBar(6)==1 && getBar(7)==1 ){//90 degree turn left
-        stopMoving();
-        moveFwd();
-        delay(160);
-        stopMoving();
-        rawValue = mySensorBar.getRaw();
-        Serial.print(rawValue);
+        if( !(getBar(1)==1 && getBar(0)==1 && getBar(3)==1 && getBar(2)==1) ){
+          stopMoving();
+          moveFwd();
+          delay(200);
+          stopMoving();
+          delay(200);
+          rawValue = mySensorBar.getRaw();
+          for( int i = 7; i >= 0; i-- ){
+            Serial.print((rawValue >> i) & 0x01);
+          }
+       }
       if(getBar(1)==1 && getBar(0)==1 && getBar(3)==1 && getBar(2)==1){
         Serial.print("INTERSECTION");
         stopMoving();
         moveFwd();
-        delay(320);
+        delay(300);
         state = 1;
         stopMoving();
         return;
       }
       turn(-20);
-      turnBack(-10);
+      turnBack(-20);
+      moveFwd();
+      delay(200);
+      stopMoving();
+      //while(1);
     }
     else{
       lRSpeed = 20;
@@ -340,11 +238,17 @@ void defaultLineFollower2(){
    }
    else if(getBar(2)==1 ){//go right
     if( getBar(1)==1 && getBar(0)==1 && getBar(3)==1 ){//90 degree turn right
-        stopMoving();
-        moveFwd();
-        delay(160);
-        stopMoving();
-        rawValue = mySensorBar.getRaw();
+        if( !(getBar(4)==1 && getBar(6)==1 && getBar(7)==1 && getBar(5)==1) ){
+          stopMoving();
+          moveFwd();
+          delay(200);
+          stopMoving();
+          delay(200);
+          rawValue = mySensorBar.getRaw();
+          for( int i = 7; i >= 0; i-- ){
+            Serial.print((rawValue >> i) & 0x01);
+          }
+       }
       if(getBar(4)==1 && getBar(6)==1 && getBar(7)==1 && getBar(5)==1){
         Serial.print("INTERSECTION");
         stopMoving();
@@ -355,7 +259,11 @@ void defaultLineFollower2(){
         return;
       }
       turn(20);
-      turnBack(10);
+      turnBack(20);
+      moveFwd();
+      delay(200);
+      stopMoving();
+      //while(1);
     }
     else{
       Serial.print("RIGHT ");
@@ -368,27 +276,49 @@ void defaultLineFollower2(){
     Serial.print("CRAZY LEFT ");
     while( getBar(5)==0 || getBar(6)==0 || getBar(4)==0 ){
       rawValue = mySensorBar.getRaw();
+      for( int i = 7; i >= 0; i-- ){
+          Serial.print((rawValue >> i) & 0x01);
+        }
+      Serial.println(" ");
       turnBack(-1);
       turn(-3);
     }
-    turn(-40);
-    turnBack(-20);
-    while(1);
+    lRSpeed = 60;
+    moveLeft();
+    delay(150);
+    lRSpeed = 15;
+    stopMoving();
+    moveFwd();
+    delay(100);
+    stopMoving();
    }
    else if( getBar(1)==1 ){//go right
     Serial.print("CRAZY RIGHT ");
     while( getBar(2)==0 || getBar(1)==0 || getBar(3)==0 ){
       rawValue = mySensorBar.getRaw();
+      for( int i = 7; i >= 0; i-- ){
+          Serial.print((rawValue >> i) & 0x01);
+        }
+      Serial.println(" ");
       turnBack(1);
       turn(3);
     }
-    turn(40);
-    turnBack(20);
-    while(1);
-    
+    lRSpeed = 60;
+    moveRight();
+    delay(150);
+    lRSpeed = 15;
+    stopMoving();
+    moveFwd();
+    delay(100);
+    stopMoving();  
    }
    else if( getBar(3)==1 || getBar(4)==1 ){//go forward
     Serial.println("FORWARD ");
+    moveFwd();
+    delay(40);
+   }
+   else{//nothing
+    Serial.println("NOTHING DETECTED SO FORWARD ");
     moveFwd();
     delay(40);
    }
@@ -437,10 +367,10 @@ void stopLeft(){
 
 void turn(int deg){
   if(deg > 0){
-    deg = map(deg, 0, 180, 0, -1450);
+    deg = map(deg, 0, 180, 0, -1750);
   }
   else{
-    deg = map(deg, -180, 0, 1460, 0);
+    deg = map(deg, -180, 0, 1750, 0);
   }
   if(deg > 0){
     encoderValueR = 0;
@@ -462,10 +392,10 @@ void turn(int deg){
 
 void turnBack(int deg){
   if(deg > 0){
-    deg = map(deg, 0, 180, 0, -1750);
+    deg = map(deg, 0, 180, 0, -1600);
   }
   else{
-    deg = map(deg, -180, 0, 2860, 0);
+    deg = map(deg, -180, 0, 3200, 0);
   }
   if(deg < 0){
     deg = -deg;
