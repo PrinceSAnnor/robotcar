@@ -2,9 +2,7 @@
 #include "sensorbar.h"
 
 #define trigger A0
-//#define echoLeft 2
 #define EncR 2 
-//#define S0 3
 #define EncL 3 
 #define S2 4
 #define S3 5
@@ -14,8 +12,7 @@
 #define rightPWM 9
 #define OUTRight 10
 #define OUTLeft 11
-#define echoRight 12
-#define echoCenter 13
+#define S0 12
 
 const uint8_t SX1509_ADDRESS = 0x3E;
 SensorBar mySensorBar(SX1509_ADDRESS);
@@ -48,13 +45,13 @@ volatile long encoderValueL = 0;
 const int TOL = 15;
 int toleration = TOL;
 
-int GREENRight = 20;
-int BLUERight = 20;
-int REDRight = 20;
-int GREENLeft = 40;
-int BLUELeft = 40;
-int REDLeft = 40;
-int colorTol = 60;
+int GREENRight = -3400;
+int BLUERight = -10000;
+int REDRight = 24000;
+int GREENLeft = -3400;
+int BLUELeft = -10000;
+int REDLeft = 24000;
+int colorTol = 2000;
 uint8_t leftSensor = 0;
 uint8_t rightSensor = 0;
 void setup()
@@ -63,20 +60,18 @@ void setup()
   pinMode(rightPWM, OUTPUT);
   pinMode(leftDir, OUTPUT);
   pinMode(leftPWM, OUTPUT);
-  //pinMode(S0, OUTPUT);
+  pinMode(S0, OUTPUT);
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
   pinMode(trigger, OUTPUT);
   
   //pinMode(echoLeft, INPUT);
-  pinMode(echoRight, INPUT);
-  pinMode(echoCenter, INPUT);
   pinMode(OUTRight, INPUT);
   pinMode(OUTLeft, INPUT);
   pinMode(EncR, INPUT_PULLUP); 
   pinMode(EncL, INPUT_PULLUP);
 
-  //digitalWrite(S0,HIGH);//20% frequency scaling
+  digitalWrite(S0,HIGH);//20% frequency scaling
   
   attachInterrupt(0, updateEncoderR, RISING);
   attachInterrupt(1, updateEncoderL, RISING);
@@ -93,23 +88,65 @@ void setup()
     Serial.println("sx1509 IC communication FAILED!");
     while(1);
   }
-  
-  
 }
 
 void loop()
 {
+  state = 1;
+  /*
+  int greensR[30];
+    int bluesR[30];
+    int redsR[30];
+    int greensL[30];
+    int bluesL[30];
+    int redsL[30];
+    for( int i = 0; i < 30; i++ ){
+      setForGreen();
+      greenRight = pulseIn(OUTRight, LOW);
+      greenLeft = pulseIn(OUTLeft, LOW);
+      greensR[i] = greenRight;
+      greensL[i] = greenLeft;
+      delay(100);
+      setForBlue();
+      blueRight = pulseIn(OUTRight, LOW);
+      blueLeft = pulseIn(OUTLeft, LOW);
+      bluesR[i] = blueRight;
+      bluesL[i] = blueLeft;
+      delay(100);
+      setForRed();
+      redRight = pulseIn(OUTRight, LOW);
+      redLeft = pulseIn(OUTLeft, LOW);
+      redsR[i] = redRight;
+      redsL[i] = redLeft;
+      delay(100);
+    }
+    Serial.println(" ");
+    redRight = getMod(redsR,30);
+    redLeft = getMod(redsL,30);
+    blueRight = getMod(bluesR,30);
+    blueLeft = getMod(bluesL,30);
+    greenRight = getMod(greensR,30);
+    greenLeft = getMod(greensL,30);
+    Serial.println("LEFT RGB");
+    Serial.println(redLeft);
+    Serial.println(greenLeft);
+    Serial.println(blueLeft);
+    Serial.println("RIGHT RGB");
+    Serial.println(redRight);
+    Serial.println(greenRight);
+    Serial.println(blueRight);
+*/
   
   //Serial.print("STATE ");
   //Serial.println(state);
   rawValue = mySensorBar.getRaw();
   //Serial.println(rawValue);
-  Serial.print("Bin value of input: ");
+  //Serial.print("Bin value of input: ");
   for( int i = 7; i >= 0; i-- )
   {
-    Serial.print((rawValue >> i) & 0x01);
+    //Serial.print((rawValue >> i) & 0x01);
   }
-  Serial.println("b");
+  //Serial.println("b");
 
   //Print the hex value to the serial buffer.  
   pos = mySensorBar.getPosition();
@@ -118,38 +155,55 @@ void loop()
   density = mySensorBar.getDensity();
   //Serial.println(density);
   //Serial.println("");
-  //delay(666);
-  //Wait 2/3 of a second
+  //delay(300);
   
   if( state==0 ){
-    defaultLineFollower();
-    delay(300);
+    //defaultLineFollower();
+    //delay(300);
   }
   else if( state==1 ){
-    setForGreen();
-    greenRight = pulseIn(OUTRight, LOW);
-    greenLeft = pulseIn(OUTLeft, LOW);
-    Serial.print("GRight:");
-    Serial.print(greenRight);
-    Serial.print(" GLeft:");
-    Serial.println(greenLeft);
-    delay(100);
-    setForBlue();
-    blueRight = pulseIn(OUTRight, LOW);
-    blueLeft = pulseIn(OUTLeft, LOW);
-    Serial.print("BRight:");
-    Serial.print(blueRight);
-    Serial.print(" BLeft:");
-    Serial.println(blueLeft);
-    delay(100);
-    setForRed();
-    redRight = pulseIn(OUTRight, LOW);
-    redLeft = pulseIn(OUTLeft, LOW);
-    Serial.print("RRight:");
-    Serial.print(redRight);
-    Serial.print(" RLeft:");
+    int greensR[30];
+    int bluesR[30];
+    int redsR[30];
+    int greensL[30];
+    int bluesL[30];
+    int redsL[30];
+    for( int i = 0; i < 30; i++ ){
+      setForGreen();
+      greenRight = pulseIn(OUTRight, LOW);
+      greenLeft = pulseIn(OUTLeft, LOW);
+      greensR[i] = greenRight;
+      greensL[i] = greenLeft;
+      delay(100);
+      setForBlue();
+      blueRight = pulseIn(OUTRight, LOW);
+      blueLeft = pulseIn(OUTLeft, LOW);
+      bluesR[i] = blueRight;
+      bluesL[i] = blueLeft;
+      delay(100);
+      setForRed();
+      redRight = pulseIn(OUTRight, LOW);
+      redLeft = pulseIn(OUTLeft, LOW);
+      redsR[i] = redRight;
+      redsL[i] = redLeft;
+      delay(100);
+    }
+    Serial.println(" ");
+    redRight = getMod(redsR,30);
+    redLeft = getMod(redsL,30);
+    blueRight = getMod(bluesR,30);
+    blueLeft = getMod(bluesL,30);
+    greenRight = getMod(greensR,30);
+    greenLeft = getMod(greensL,30);
+    Serial.println("LEFT RGB");
     Serial.println(redLeft);
-    delay(100);
+    Serial.println(greenLeft);
+    Serial.println(blueLeft);
+    Serial.println("RIGHT RGB");
+    Serial.println(redRight);
+    Serial.println(greenRight);
+    Serial.println(blueRight);
+    Serial.println(" ");
     if(greenRight > GREENRight && redRight > REDRight && blueRight > BLUERight && greenRight < GREENRight+colorTol && redRight < REDRight+colorTol && blueRight < BLUERight+colorTol){
       Serial.println("GREEN ON RIGHT");
       rightSensor = 1;
@@ -158,38 +212,34 @@ void loop()
       Serial.println("GREEN ON LEFT");
       leftSensor = 1;
     }
-    while(1);
     Serial.println("COLOR LOGIC");
     if( leftSensor == 1 && rightSensor == 1 ){//turn 180
       Serial.println("180 TURN");
-      while(1);
-      turn(90);
-      turnBack(90);
+      turnTank(180);
       state=0;
      }
      else if( leftSensor == 1 && rightSensor == 0 ){//turn -90
       Serial.println("-90 TURN");
-      while(1);
-      turn(-45);
-      turnBack(-45);
+      turnTank(-90);
       state=0;
      }
      else if( leftSensor == 0 && rightSensor == 1 ){//turn 90
       Serial.println("90 TURN");
-      while(1);
-      turn(45);
-      turnBack(45);
+      turnTank(90);
       state=0;
      }
      else{
-      state=1;
+      Serial.println("CONTINUE STRAIGHT");
+      moveFwd();
+      delay(100);
+      stopMoving();
+      state=0;
      }
      leftSensor = 0;
      rightSensor = 0;
   }
   else if( state==2 ){
-     moveFwd();
-     delay(300);
+     //distance logic
   }
  
   //stopMoving();
@@ -201,6 +251,26 @@ void defaultLineFollower(){
   mSpeed = 40;
   if( getBar(5)==1 ){//go left
     if( getBar(4)==1 && getBar(6)==1 && getBar(7)==1 ){//90 degree turn left
+        stopMoving();
+        moveFwd();
+        delay(300);
+        stopMoving();
+        delay(200);
+        rawValue = mySensorBar.getRaw();
+        Serial.println("LEFT INTER CHECKUP");
+        for( int i = 7; i >= 0; i-- ){
+            Serial.print((rawValue >> i) & 0x01);
+        }
+        moveBck();
+        delay(300);
+        stopMoving();
+        if( getBar(3)==1 || getBar(4)==1 || getBar(5)==1 || getBar(2)==1 ){
+          Serial.print("INTERSECTION");
+          intersectionMove();
+          state = 1;
+          return;
+        }
+        Serial.println("NO STRAIGHT AFTER CHECKUP");   
         if( !(getBar(1)==1 && getBar(0)==1 && getBar(3)==1 && getBar(2)==1) ){
           stopMoving();
           moveFwd();
@@ -214,11 +284,8 @@ void defaultLineFollower(){
        }
       if(getBar(1)==1 && getBar(0)==1 && getBar(3)==1 && getBar(2)==1){
         Serial.print("INTERSECTION");
-        stopMoving();
-        moveFwd();
-        delay(300);
-        state = 1;
-        stopMoving();
+        intersectionMove();
+        state =1;
         return;
       }
       turn(-20);
@@ -236,8 +303,28 @@ void defaultLineFollower(){
     Serial.print("LEFT ");
     
    }
-   else if(getBar(2)==1 ){//go right
+   else if(getBar(2)==1 ){//go right   
     if( getBar(1)==1 && getBar(0)==1 && getBar(3)==1 ){//90 degree turn right
+        stopMoving();
+        moveFwd();
+        delay(300);
+        stopMoving();
+        delay(200);
+        rawValue = mySensorBar.getRaw();
+        Serial.println("RIGHT INTER CHECKUP");
+        for( int i = 7; i >= 0; i-- ){
+            Serial.print((rawValue >> i) & 0x01);
+        }
+        moveBck();
+        delay(300);
+        stopMoving();
+        if( getBar(3)==1 || getBar(4)==1 || getBar(5)==1 || getBar(2)==1){
+          Serial.println("INTERSECTION");
+          intersectionMove();
+          state = 1;
+          return;
+        }
+        Serial.println("NO STRAIGHT AFTER CHECKUP");
         if( !(getBar(4)==1 && getBar(6)==1 && getBar(7)==1 && getBar(5)==1) ){
           stopMoving();
           moveFwd();
@@ -251,11 +338,8 @@ void defaultLineFollower(){
        }
       if(getBar(4)==1 && getBar(6)==1 && getBar(7)==1 && getBar(5)==1){
         Serial.print("INTERSECTION");
-        stopMoving();
-        moveFwd();
-        delay(300);
+        intersectionMove();
         state = 1;
-        stopMoving();
         return;
       }
       turn(20);
@@ -283,13 +367,16 @@ void defaultLineFollower(){
       turnBack(-1);
       turn(-3);
     }
-    lRSpeed = 60;
-    moveLeft();
-    delay(150);
-    lRSpeed = 15;
+    turnTank( -30  );
     stopMoving();
-    moveFwd();
     delay(100);
+    rawValue = mySensorBar.getRaw();
+    Serial.println("CRAZY LEFT FORWARD");
+    while( getBar(5)==0 ){
+      moveFwd();
+      delay(40);
+      rawValue = mySensorBar.getRaw();
+    }
     stopMoving();
    }
    else if( getBar(1)==1 ){//go right
@@ -303,13 +390,16 @@ void defaultLineFollower(){
       turnBack(1);
       turn(3);
     }
-    lRSpeed = 60;
-    moveRight();
-    delay(150);
-    lRSpeed = 15;
+    turnTank( 30  );
     stopMoving();
-    moveFwd();
     delay(100);
+    rawValue = mySensorBar.getRaw();
+    Serial.println("CRAZY RIGHT FORWARD");
+    while( getBar(2)==0 ){
+      moveFwd();
+      delay(40);
+      rawValue = mySensorBar.getRaw();
+    }
     stopMoving();  
    }
    else if( getBar(3)==1 || getBar(4)==1 ){//go forward
@@ -366,11 +456,12 @@ void stopLeft(){
 }
 
 void turn(int deg){
+  mSpeed = 60;
   if(deg > 0){
-    deg = map(deg, 0, 180, 0, -1750);
+    deg = map(deg, 0, 180, 0, -1600);
   }
   else{
-    deg = map(deg, -180, 0, 1750, 0);
+    deg = map(deg, -180, 0, 1600, 0);
   }
   if(deg > 0){
     encoderValueR = 0;
@@ -387,15 +478,16 @@ void turn(int deg){
     while(encoderValueL < deg);
     stopLeft();
   }
-  
+  mSpeed = 20;
 }
 
 void turnBack(int deg){
+  mSpeed = 60;
   if(deg > 0){
     deg = map(deg, 0, 180, 0, -1600);
   }
   else{
-    deg = map(deg, -180, 0, 3200, 0);
+    deg = map(deg, -180, 0, 1600, 0);
   }
   if(deg < 0){
     deg = -deg;
@@ -412,7 +504,41 @@ void turnBack(int deg){
     while(encoderValueL < deg);
     stopLeft();
   }
-  
+  mSpeed = 20;
+}
+
+void turnTank(int deg){
+  mSpeed = 60;
+  if(deg > 0){
+    deg = map(deg, 0, 180, 0, -750);
+  }
+  else{
+    deg = map(deg, -180, 0, 750, 0);
+  }
+  if(deg < 0){
+    deg = -deg;
+    encoderValueR = 0;
+    encoderValueL = 0;
+    digitalWrite(rightDir, !rightFWr);
+    analogWrite(rightPWM, mSpeed);
+    digitalWrite(leftDir, leftFwr);
+    analogWrite(leftPWM, mSpeed);
+    while(encoderValueR < deg  || encoderValueL < deg);
+    stopRight();
+    stopLeft();
+  }
+  else if(deg > 0){
+    encoderValueR = 0;
+    encoderValueL = 0;
+    digitalWrite(rightDir, rightFWr);
+    analogWrite(rightPWM, mSpeed);
+    digitalWrite(leftDir, !leftFwr);
+    analogWrite(leftPWM, mSpeed);
+    while(encoderValueL < deg || encoderValueR < deg);
+    stopLeft();
+    stopRight();
+  }
+  mSpeed = 20;
 }
 
 void moveLeft()
@@ -442,6 +568,14 @@ void stopMoving()
   analogWrite(leftPWM, 0);
 }
 
+void intersectionMove(){
+  stopMoving();
+  //while(1);
+  moveFwd();
+  delay(500);
+  stopMoving();
+}
+
 void setForGreen(){
   digitalWrite(S2,HIGH);
   digitalWrite(S3,HIGH);
@@ -456,4 +590,27 @@ void setForRed(){
 }
 int getBar(int i){
  return (rawValue >> i) & 0x01;  
+}
+
+int getMod(int arr[],int siz){
+  int maxNum= -999;
+  int maxInd = -1;
+  int count = 0;
+  for( int i = 0; i < siz; i++ ){
+    count = 0;
+      for( int k = 0; k < siz; k++ ){
+        if( arr[k] == arr[i] ){
+          count = count + 1;
+         }
+       }
+       if(count > maxNum){
+        maxNum = count;
+        maxInd = i;
+       }
+  }
+  return arr[maxInd];
+}
+void colorConfigure(){
+  
+   
 }
