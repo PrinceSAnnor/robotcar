@@ -1,4 +1,12 @@
 #include "lds_driver.h"
+#include <fstream>
+int getnum = 5;
+
+ofstream serial_port; // outdata is like cin
+
+serial_port.open("/dev/ttyACM0","w");
+
+fprintf(serial_port, "%d", getnum);
 
 namespace lds {
   LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_) {
