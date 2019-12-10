@@ -2,6 +2,7 @@
 
 namespace lds {
   LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io, const std::string & port_1, uint32_t baud_rate_1, boost::asio::io_service & io1): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_), port1(port_1), baud_rate1(baud_rate_1), serial1(io1, port1) {
+    printf("%d", baud_rate1);
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
     serial1.set_option(boost::asio::serial_port_base::baud_rate(baud_rate1));
 
