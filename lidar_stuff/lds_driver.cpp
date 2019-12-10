@@ -1,14 +1,14 @@
 #include "lds_driver.h"
 
+#include <ctime>
+
 namespace lds {
-  LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io, const std::string & port_1, uint32_t baud_rate_1, boost::asio::io_service & io1): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_), port1(port_1), baud_rate1(baud_rate_1), serial1(io1, port1) {
-    printf("%d", baud_rate1);
+  LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io,
+    const std::string & port_1, uint32_t baud_rate_1, boost::asio::io_service & io1): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_), port1(port_1), baud_rate1(baud_rate_1), serial1(io1, port1) {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
     serial1.set_option(boost::asio::serial_port_base::baud_rate(baud_rate1));
 
     boost::asio::write(serial_, boost::asio::buffer("b", 1)); // start motor
-
-    boost::asio::write(serial1, boost::asio::buffer("a", 1));
 
   }
 
@@ -17,6 +17,7 @@ namespace lds {
   }
 
   void LFCDLaser::poll() {
+    instruction = "N";
     uint8_t temp_char;
     uint8_t start_count = 0;
     bool got_scan = false;
@@ -51,11 +52,11 @@ namespace lds {
     int counterL2 = 0;
     int counterR2 = 0;
 
+    a = clock() / CLOCKS_PER_SEC;
+
     while (!shutting_down_ && !got_scan) {
       // Wait until first data sync of frame: 0xFA, 0xA0
       boost::asio::read(serial_, boost::asio::buffer( & raw_bytes[start_count], 1));
-
-      boost::asio::write(serial1, boost::asio::buffer("a", 1));
 
       if (start_count == 0) {
         if (raw_bytes[start_count] == 0xFA) {
@@ -106,6 +107,7 @@ namespace lds {
                     if (avgB1 < value_maxB1) {
                       printf("back1=%f,", avgB1);
                       printf("\n");
+                      instruction = "B";
                     }
                     sumB1 = 0.0;
                     avgB1 = 0.0;
@@ -122,6 +124,7 @@ namespace lds {
                     if (avgB2 < value_maxB2) {
                       printf("back2=%f,", avgB2);
                       printf("\n");
+                      instruction = "B";
                     }
                     sumB2 = 0.0;
                     avgB2 = 0.0;
@@ -138,6 +141,7 @@ namespace lds {
                     if (avgR1 < value_maxR1) {
                       printf("right1=%f,", avgR1);
                       printf("\n");
+                      instruction = "R";
                     }
                     sumR1 = 0.0;
                     avgR1 = 0.0;
@@ -154,6 +158,7 @@ namespace lds {
                     if (avgR2 < value_maxR2) {
                       printf("right2=%f,", avgR2);
                       printf("\n");
+                      instruction = "R";
                     }
                     sumR2 = 0.0;
                     avgR2 = 0.0;
@@ -170,6 +175,7 @@ namespace lds {
                     if (avgF1 < value_maxF1) {
                       printf("front1=%f,", avgF1);
                       printf("\n");
+                      instruction = "F";
                     }
                     sumF1 = 0.0;
                     avgF1 = 0.0;
@@ -186,6 +192,7 @@ namespace lds {
                     if (avgF2 < value_maxF2) {
                       printf("front2=%f,", avgF2);
                       printf("\n");
+                      instruction = "F";
                     }
                     sumF2 = 0.0;
                     avgF2 = 0.0;
@@ -202,6 +209,7 @@ namespace lds {
                     if (avgL1 < value_maxL1) {
                       printf("left1=%f,", avgL1);
                       printf("\n");
+                      instruction = "L";
                     }
                     sumL1 = 0.0;
                     avgL1 = 0.0;
@@ -218,17 +226,24 @@ namespace lds {
                     if (avgL2 < value_maxL2) {
                       printf("left2=%f,", avgL2);
                       printf("\n");
+                      instruction = "L";
                     }
                     sumL2 = 0.0;
                     avgL2 = 0.0;
                     counterL2 = 0;
                   }
                 }
+
               }
             }
           }
+          if(instruction != "N")
+          {
+            while (clock() / CLOCKS_PER_SEC - a < 1);
+            boost::asio::write(serial1, boost::asio::buffer(instruction, 2));
+            a = clock() / CLOCKS_PER_SEC;
+          }
 
-          // scan->time_increment = motor_speed/good_sets/1e8;
         } else {
           start_count = 0;
         }

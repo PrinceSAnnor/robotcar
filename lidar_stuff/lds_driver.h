@@ -27,5 +27,8 @@ private:
   std::string port1; ///< @brief The serial port the driver is attached to
   uint32_t baud_rate1; ///< @brief The baud rate for the serial connection
   boost::asio::serial_port serial1;
+
+  std::string instruction;
+  int a;
 };
 }
