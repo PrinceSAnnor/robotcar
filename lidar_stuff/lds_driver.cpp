@@ -1,19 +1,14 @@
 #include "lds_driver.h"
-#include <fstream>
-int getnum = 5;
-
-ofstream serial_port; // outdata is like cin
-
-serial_port.open("/dev/ttyACM0","w");
-
-fprintf(serial_port, "%d", getnum);
 
 namespace lds {
-  LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_) {
+  LFCDLaser::LFCDLaser(const std::string & port, uint32_t baud_rate, boost::asio::io_service & io, const std::string & port_1, uint32_t baud_rate_1, boost::asio::io_service & io1): port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_), port1(port_1), baud_rate1(baud_rate_1), serial1(io1, port1) {
     serial_.set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
+    serial1.set_option(boost::asio::serial_port_base::baud_rate(baud_rate1));
 
-    // Below command is not required after firmware upgrade (2017.10)
     boost::asio::write(serial_, boost::asio::buffer("b", 1)); // start motor
+
+    boost::asio::write(serial1, boost::asio::buffer("a", 1));
+
   }
 
   LFCDLaser::~LFCDLaser() {
@@ -58,6 +53,8 @@ namespace lds {
     while (!shutting_down_ && !got_scan) {
       // Wait until first data sync of frame: 0xFA, 0xA0
       boost::asio::read(serial_, boost::asio::buffer( & raw_bytes[start_count], 1));
+
+      boost::asio::write(serial1, boost::asio::buffer("a", 1));
 
       if (start_count == 0) {
         if (raw_bytes[start_count] == 0xFA) {
@@ -240,15 +237,25 @@ namespace lds {
 }
 
 int main(int argc, char ** argv) {
+
   std::string port;
   int baud_rate;
+
+  std::string port1;
+  int baud_rate1;
+
   uint16_t rpms;
   port = "/dev/ttyUSB0";
   baud_rate = 230400;
+
+  port1 = "/dev/ttyACM0";
+  baud_rate1 = 9600;
+
   boost::asio::io_service io;
+  boost::asio::io_service io1;
 
   try {
-    lds::LFCDLaser laser(port, baud_rate, io);
+    lds::LFCDLaser laser(port, baud_rate, io, port1, baud_rate1, io1);
 
     while (1) {
       laser.poll();
