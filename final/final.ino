@@ -46,13 +46,9 @@ volatile long encoderValueL = 0;
 const int TOL = 15;
 int toleration = TOL;
 
-int GREENRight = -3400;
-int BLUERight = -10000;
-int REDRight = 24000;
-int GREENLeft = -3400;
-int BLUELeft = -10000;
-int REDLeft = 24000;
-int colorTol = 2000;
+int RED = 30;
+int GREEN = 22;
+int BLUE = 22;
 uint8_t leftSensor = 0;
 uint8_t rightSensor = 0;
 void setup()
@@ -93,6 +89,7 @@ void setup()
 
 void loop()
 {
+  //state = 1;
   /*
     int greensR[30];
     int bluesR[30];
@@ -144,7 +141,7 @@ void loop()
   //Serial.print("Bin value of input: ");
   for ( int i = 7; i >= 0; i-- )
   {
-    Serial.print((rawValue >> i) & 0x01);
+    //Serial.print((rawValue >> i) & 0x01);
   }
   //Serial.println("b");
 
@@ -204,11 +201,11 @@ void loop()
     Serial.println(greenRight);
     Serial.println(blueRight);
     Serial.println(" ");
-    if (greenRight > GREENRight && redRight > REDRight && blueRight > BLUERight && greenRight < GREENRight + colorTol && redRight < REDRight + colorTol && blueRight < BLUERight + colorTol) {
+    if (greenRight > GREEN && redRight > RED && blueRight > BLUE) {
       Serial.println("GREEN ON RIGHT");
       rightSensor = 1;
     }
-    if (greenLeft > GREENLeft && redLeft > REDLeft && blueLeft > BLUELeft && greenLeft < GREENLeft + colorTol && redLeft < REDLeft + colorTol && blueLeft < BLUELeft + colorTol) {
+    if (greenLeft > GREEN && redLeft > RED && blueLeft > BLUE) {
       Serial.println("GREEN ON LEFT");
       leftSensor = 1;
     }
@@ -245,175 +242,6 @@ void loop()
   //stopMoving();
   //delay(666);
 
-}
-
-void defaultLineFollower2() {
-  mSpeed = 40;
-  if ( getBar(5) == 1 ) { //go left
-    if ( getBar(4) == 1 && getBar(6) == 1 && getBar(7) == 1 ) { //90 degree turn left
-      stopMoving();
-      moveFwd();
-      delay(300);
-      stopMoving();
-      delay(200);
-      rawValue = mySensorBar.getRaw();
-      Serial.println("LEFT INTER CHECKUP");
-      for ( int i = 7; i >= 0; i-- ) {
-        Serial.print((rawValue >> i) & 0x01);
-      }
-      moveBck();
-      delay(300);
-      stopMoving();
-      if ( getBar(3) == 1 || getBar(4) == 1 || getBar(5) == 1 || getBar(2) == 1 ) {
-        Serial.print("INTERSECTION");
-        intersectionMove();
-        state = 1;
-        return;
-      }
-      Serial.println("NO STRAIGHT AFTER CHECKUP");
-      if ( !(getBar(1) == 1 && getBar(0) == 1 && getBar(3) == 1 && getBar(2) == 1) ) {
-        stopMoving();
-        moveFwd();
-        delay(200);
-        stopMoving();
-        delay(200);
-        rawValue = mySensorBar.getRaw();
-        for ( int i = 7; i >= 0; i-- ) {
-          Serial.print((rawValue >> i) & 0x01);
-        }
-      }
-      if (getBar(1) == 1 && getBar(0) == 1 && getBar(3) == 1 && getBar(2) == 1) {
-        Serial.print("INTERSECTION");
-        intersectionMove();
-        state = 1;
-        return;
-      }
-      turn(-20);
-      turnBack(-20);
-      moveFwd();
-      delay(200);
-      stopMoving();
-      //while(1);
-    }
-    else {
-      lRSpeed = 20;
-      stopMoving();
-      moveLeft();
-    }
-    Serial.print("LEFT ");
-
-  }
-  else if (getBar(2) == 1 ) { //go right
-    if ( getBar(1) == 1 && getBar(0) == 1 && getBar(3) == 1 ) { //90 degree turn right
-      stopMoving();
-      moveFwd();
-      delay(300);
-      stopMoving();
-      delay(200);
-      rawValue = mySensorBar.getRaw();
-      Serial.println("RIGHT INTER CHECKUP");
-      for ( int i = 7; i >= 0; i-- ) {
-        Serial.print((rawValue >> i) & 0x01);
-      }
-      moveBck();
-      delay(300);
-      stopMoving();
-      if ( getBar(3) == 1 || getBar(4) == 1 || getBar(5) == 1 || getBar(2) == 1) {
-        Serial.println("INTERSECTION");
-        intersectionMove();
-        state = 1;
-        return;
-      }
-      Serial.println("NO STRAIGHT AFTER CHECKUP");
-      if ( !(getBar(4) == 1 && getBar(6) == 1 && getBar(7) == 1 && getBar(5) == 1) ) {
-        stopMoving();
-        moveFwd();
-        delay(200);
-        stopMoving();
-        delay(200);
-        rawValue = mySensorBar.getRaw();
-        for ( int i = 7; i >= 0; i-- ) {
-          Serial.print((rawValue >> i) & 0x01);
-        }
-      }
-      if (getBar(4) == 1 && getBar(6) == 1 && getBar(7) == 1 && getBar(5) == 1) {
-        Serial.print("INTERSECTION");
-        intersectionMove();
-        state = 1;
-        return;
-      }
-      turn(20);
-      turnBack(20);
-      moveFwd();
-      delay(200);
-      stopMoving();
-      //while(1);
-    }
-    else {
-      Serial.print("RIGHT ");
-      lRSpeed = 20;
-      stopMoving();
-      moveRight();
-    }
-  }
-  else if (getBar(6) == 1 ) { //go left
-    Serial.print("CRAZY LEFT ");
-    while ( getBar(5) == 0 || getBar(6) == 0 || getBar(4) == 0 ) {
-      rawValue = mySensorBar.getRaw();
-      for ( int i = 7; i >= 0; i-- ) {
-        Serial.print((rawValue >> i) & 0x01);
-      }
-      Serial.println(" ");
-      turnBack(-1);
-      turn(-3);
-    }
-    turnTank( -30  );
-    stopMoving();
-    delay(100);
-    rawValue = mySensorBar.getRaw();
-    Serial.println("CRAZY LEFT FORWARD");
-    while ( getBar(5) == 0 ) {
-      moveFwd();
-      delay(40);
-      rawValue = mySensorBar.getRaw();
-    }
-    stopMoving();
-  }
-  else if ( getBar(1) == 1 ) { //go right
-    Serial.print("CRAZY RIGHT ");
-    while ( getBar(2) == 0 || getBar(1) == 0 || getBar(3) == 0 ) {
-      rawValue = mySensorBar.getRaw();
-      for ( int i = 7; i >= 0; i-- ) {
-        Serial.print((rawValue >> i) & 0x01);
-      }
-      Serial.println(" ");
-      turnBack(1);
-      turn(3);
-    }
-    turnTank( 30  );
-    stopMoving();
-    delay(100);
-    rawValue = mySensorBar.getRaw();
-    Serial.println("CRAZY RIGHT FORWARD");
-    while ( getBar(2) == 0 ) {
-      moveFwd();
-      delay(40);
-      rawValue = mySensorBar.getRaw();
-    }
-    stopMoving();
-  }
-  else if ( getBar(3) == 1 || getBar(4) == 1 ) { //go forward
-    Serial.println("FORWARD ");
-    moveFwd();
-    delay(40);
-  }
-  else { //nothing
-    Serial.println("NOTHING DETECTED SO FORWARD ");
-    moveFwd();
-    delay(40);
-  }
-  mSpeed = 20;
-  stopMoving();
 }
 
 void moveFwd()
@@ -577,13 +405,13 @@ void distanceBackward(int distance) {
     if( encoderValueL < encoderValueR  ){
       stopRight();
       while ( (encoderValueR - encoderValueL) > 0 );
-      digitalWrite(rightDir, rightFWr);
+      digitalWrite(rightDir, !rightFWr);
       analogWrite(rightPWM, mSpeed);
     }
     if( encoderValueL > encoderValueR  ){
       stopLeft();
       while ( (encoderValueL - encoderValueR) > 0 );
-      digitalWrite(leftDir, leftFwr);
+      digitalWrite(leftDir, !leftFwr);
       analogWrite(leftPWM, mSpeed);
     }
   }
@@ -620,10 +448,7 @@ void stopMoving()
 }
 
 void intersectionMove() {
-  stopMoving();
-  moveFwd();
-  delay(500);
-  stopMoving();
+  distanceForward( 120 );
 }
 
 void setForGreen() {
@@ -668,31 +493,30 @@ void defaultLineFollower() {
     Serial.println("INTERSECTION ");
     intersectionMove();
     state = 1;
-    while (1);
+    return;
   }
   else if ( getBar(3) == 1 && getBar(4) == 1) { //clear go forward
     if ( getBar(0) == 1 && getBar(1) == 1 && getBar(2) == 1) { //needs a sharp turn to right
       Serial.println("SHARP RIGHT ");
       if ( checkedUp < 12 ) {
         stopMoving();
-        moveFwd();
-        delay(300);
+        distanceForward(100);
         stopMoving();
         rawValue = mySensorBar.getRaw();
         Serial.println("RIGHT INTERSECTION CHECKUP");
         for ( int i = 7; i >= 0; i-- ) {
           Serial.print((rawValue >> i) & 0x01);
         }
-        moveBck();
-        delay(300);
+        distanceBackward(100);
         stopMoving();
         checkedUp = 42;
-        if ( getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0 ) {
+        if ( (getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0) || (getBar(3) == 1 && getBar(4) == 0 && getBar(5) == 0 && getBar(2) == 1) || (getBar(3) == 0 && getBar(4) == 1 && getBar(5) == 1 && getBar(2) == 0) ){ 
           Serial.println("INTERSECTION");
           intersectionMove();
           state = 1;
-          while (1);
+          return;
         }
+        rawValue = mySensorBar.getRaw();
       }
       while ( getBar(0) == 1 ) {
         rawValue = mySensorBar.getRaw();
@@ -700,15 +524,13 @@ void defaultLineFollower() {
       }
       while (getBar(4) == 0 || getBar(3) == 0 ) {
         rawValue = mySensorBar.getRaw();
-        moveFwd();
-        delay(10);
+        distanceForward(3);
         stopMoving();
       }
       if ( getBar(6) == 1 && getBar(7) == 1  ) {
         while (getBar(4) == 1 || getBar(3) == 1 ) {
           rawValue = mySensorBar.getRaw();
-          moveFwd();
-          delay(10);
+          distanceForward(3);
           stopMoving();
         }
         while (getBar(4) == 0 || getBar(3) == 0 ) {
@@ -721,22 +543,23 @@ void defaultLineFollower() {
       Serial.println("SHARP LEFT ");
       if ( checkedUp < 12 ) {
         stopMoving();
-        distanceForward(300);
+        distanceForward(100);
         stopMoving();
         rawValue = mySensorBar.getRaw();
         Serial.println("LEFT INTERSECTION CHECKUP");
         for ( int i = 7; i >= 0; i-- ) {
           Serial.print((rawValue >> i) & 0x01);
         }
-        distanceBackward(300);
+        distanceBackward(100);
         stopMoving();
         checkedUp = 42;
-        if ( getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0 ) {
+        if ( (getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0) || (getBar(3) == 1 && getBar(4) == 0 && getBar(5) == 0 && getBar(2) == 1) || (getBar(3) == 0 && getBar(4) == 1 && getBar(5) == 1 && getBar(2) == 0) ) {
           Serial.println("INTERSECTION");
           intersectionMove();
           state = 1;
-          while (1);
+          return;
         }
+        rawValue = mySensorBar.getRaw();
       }
       while ( getBar(7) == 1 ) {
         rawValue = mySensorBar.getRaw();
@@ -744,13 +567,13 @@ void defaultLineFollower() {
       }
       while (getBar(4) == 0 || getBar(3) == 0 ) {
         rawValue = mySensorBar.getRaw();
-        distanceForward(5);
+        distanceForward(3);
         stopMoving();
       }
       if ( getBar(0) == 1 && getBar(1) == 1  ) {
         while (getBar(4) == 1 || getBar(3) == 1 ) {
           rawValue = mySensorBar.getRaw();
-          distanceForward(5);
+          distanceForward(3);
           stopMoving();
         }
         while (getBar(4) == 0 || getBar(3) == 0 ) {
@@ -761,7 +584,7 @@ void defaultLineFollower() {
     }
     else {
       Serial.println("FORWARD ");
-      distanceForward(40);
+      distanceForward(10);
     }
   }
   else if ( getBar(3) == 1 || getBar(4) == 1 ) { //align then go forward
@@ -778,10 +601,10 @@ void defaultLineFollower() {
         turnTank(-1);
       }
     }
-    distanceForward(20);
+    distanceForward(10);
   }
   else if ( getBar(2) == 1) { //recovery towards left
-    distanceForward(20);
+    distanceForward(10);
     stopMoving();
     while ( getBar(4) == 0 && getBar(3) == 0 ) {
       rawValue = mySensorBar.getRaw();
@@ -789,7 +612,7 @@ void defaultLineFollower() {
     }
   }
   else if ( getBar(5) == 1) { //recovery towards right
-    distanceForward(20);
+    distanceForward(10);
     stopMoving();
     while ( getBar(4) == 0 && getBar(3) == 0) {
       rawValue = mySensorBar.getRaw();
@@ -798,7 +621,7 @@ void defaultLineFollower() {
   }
   else if ( getBar(0) == 0 && getBar(1) == 0 && getBar(2) == 0 && getBar(3) == 0 && getBar(4) == 0 && getBar(5) == 0 && getBar(6) == 0 && getBar(7) == 0 ) { //nothing
     Serial.println("NOTHING DETECTED SHOULD BE A GAP ");
-    distanceForward(20);
+    distanceForward(10);
   }
   mSpeed = 20;
   checkedUp = checkedUp - 2;
