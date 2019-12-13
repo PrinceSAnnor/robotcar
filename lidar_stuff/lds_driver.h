@@ -29,6 +29,5 @@ private:
   boost::asio::serial_port serial1;
 
   std::string instruction;
-  int a;
 };
 }

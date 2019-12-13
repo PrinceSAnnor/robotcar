@@ -51,6 +51,20 @@ int GREEN = 22;
 int BLUE = 22;
 uint8_t leftSensor = 0;
 uint8_t rightSensor = 0;
+
+int obstacle = 0;
+const long interval = 1000;
+unsigned long previousMillis = 0;
+int obstacle_forward = 0;
+int prev_obstacle_forward = 0;
+int prev_obstacle_left = 0;
+int prev_obstacle_back = 0;
+int prev_obstacle_right = 0;
+
+int obstacle_left = 0;
+int obstacle_back = 0;
+int obstacle_right = 0;
+
 void setup()
 {
   pinMode(rightDir, OUTPUT);
@@ -75,67 +89,29 @@ void setup()
   mySensorBar.setBarStrobe();//only turn on IR during reads
   mySensorBar.clearInvertBits();//Default dark on light
   uint8_t returnStatus = mySensorBar.begin();
-  Serial.begin(9600);
+  Serial.begin(4800);
   if (returnStatus)
   {
-    Serial.println("sx1509 IC communication OK");
+    //Serial.println("sx1509 ok");
   }
   else
   {
-    Serial.println("sx1509 IC communication FAILED!");
+    //Serial.println("sx1509 not ok!");
     while (1);
   }
+
 }
 
 void loop()
 {
-  //state = 1;
-  /*
-    int greensR[30];
-    int bluesR[30];
-    int redsR[30];
-    int greensL[30];
-    int bluesL[30];
-    int redsL[30];
-    for( int i = 0; i < 30; i++ ){
-      setForGreen();
-      greenRight = pulseIn(OUTRight, LOW);
-      greenLeft = pulseIn(OUTLeft, LOW);
-      greensR[i] = greenRight;
-      greensL[i] = greenLeft;
-      delay(100);
-      setForBlue();
-      blueRight = pulseIn(OUTRight, LOW);
-      blueLeft = pulseIn(OUTLeft, LOW);
-      bluesR[i] = blueRight;
-      bluesL[i] = blueLeft;
-      delay(100);
-      setForRed();
-      redRight = pulseIn(OUTRight, LOW);
-      redLeft = pulseIn(OUTLeft, LOW);
-      redsR[i] = redRight;
-      redsL[i] = redLeft;
-      delay(100);
-    }
-    Serial.println(" ");
-    redRight = getMod(redsR,30);
-    redLeft = getMod(redsL,30);
-    blueRight = getMod(bluesR,30);
-    blueLeft = getMod(bluesL,30);
-    greenRight = getMod(greensR,30);
-    greenLeft = getMod(greensL,30);
-    Serial.println("LEFT RGB");
-    Serial.println(redLeft);
-    Serial.println(greenLeft);
-    Serial.println(blueLeft);
-    Serial.println("RIGHT RGB");
-    Serial.println(redRight);
-    Serial.println(greenRight);
-    Serial.println(blueRight);
-  */
+  state = 3;
+  if (Serial.available() > 0) {
+    char temp = Serial.read();
+    obstacle = (int) temp;
+    if (obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
+      state = 2;
+  }
 
-  //Serial.print("STATE ");
-  //Serial.println(state);
   rawValue = mySensorBar.getRaw();
   //Serial.println(rawValue);
   //Serial.print("Bin value of input: ");
@@ -185,48 +161,48 @@ void loop()
       redsL[i] = redLeft;
       delay(100);
     }
-    Serial.println(" ");
+    //Serial.println(" ");
     redRight = getMod(redsR, 30);
     redLeft = getMod(redsL, 30);
     blueRight = getMod(bluesR, 30);
     blueLeft = getMod(bluesL, 30);
     greenRight = getMod(greensR, 30);
     greenLeft = getMod(greensL, 30);
-    Serial.println("LEFT RGB");
-    Serial.println(redLeft);
-    Serial.println(greenLeft);
-    Serial.println(blueLeft);
-    Serial.println("RIGHT RGB");
-    Serial.println(redRight);
-    Serial.println(greenRight);
-    Serial.println(blueRight);
-    Serial.println(" ");
+    //Serial.println("left rgb");
+    //Serial.println(redLeft);
+    //Serial.println(greenLeft);
+    //Serial.println(blueLeft);
+    //Serial.println("right rgb");
+    //Serial.println(redRight);
+    //Serial.println(greenRight);
+    //Serial.println(blueRight);
+    //Serial.println(" ");
     if (greenRight > GREEN && redRight > RED && blueRight > BLUE) {
-      Serial.println("GREEN ON RIGHT");
+      //Serial.println("green on right");
       rightSensor = 1;
     }
     if (greenLeft > GREEN && redLeft > RED && blueLeft > BLUE) {
-      Serial.println("GREEN ON LEFT");
+      //Serial.println("green on left");
       leftSensor = 1;
     }
-    Serial.println("COLOR LOGIC");
+    //Serial.println("color logic");
     if ( leftSensor == 1 && rightSensor == 1 ) { //turn 180
-      Serial.println("180 TURN");
+      //Serial.println("180 turn");
       turnTank(180);
       state = 0;
     }
     else if ( leftSensor == 1 && rightSensor == 0 ) { //turn -90
-      Serial.println("-90 TURN");
+      //Serial.println("-90 turn");
       turnTank(-90);
       state = 0;
     }
     else if ( leftSensor == 0 && rightSensor == 1 ) { //turn 90
-      Serial.println("90 TURN");
+      //Serial.println("90 turn");
       turnTank(90);
       state = 0;
     }
     else {
-      Serial.println("CONTINUE STRAIGHT");
+      //Serial.println("continue straight");
       moveFwd();
       delay(100);
       stopMoving();
@@ -237,12 +213,129 @@ void loop()
   }
   else if ( state == 2 ) {
     //distance logic
+    //
+    //    unsigned long currentMillis123 = millis();
+    //    if (currentMillis123 - previousMillis >= 2000)
+    //      previousMillis = currentMillis123;
+
+
+    //      unsigned long currentMillis = millis();
+    //
+    //      if (currentMillis - previousMillis >= 400) {
+    //        previousMillis = currentMillis;
+    //        obstacle_forward = 0;
+    //        obstacle_left = 0;
+    //        obstacle_back = 0;
+    //        obstacle_right = 0;
+    //        Serial.println("reseting");
+    //      }
+
+
+    bool isFwdDone = false;
+    int fwdDelay = 1000;
+    int prev_obstacle_forward_left = 0;
+    int prev_obstacle_left_left = 0;
+
+    while (1)
+    {
+
+      if (prev_obstacle_forward == 1 && obstacle_forward == 0)
+      {
+        Serial.println("first");
+        turn(90);
+        stopMoving();
+        prev_obstacle_forward = 0;
+        fwdDelay = 1000;
+        prev_obstacle_forward_left = 1;
+        moveFwd();
+        delay(1000);
+        stopMoving();
+      }
+
+      if (prev_obstacle_left == 1 && obstacle_left == 0)
+      {
+        Serial.println("second");
+        moveFwd();
+        delay(2000);
+        stopMoving();
+        prev_obstacle_left = 0;
+        turn(-90);
+        prev_obstacle_left_left = 0;
+        moveFwd();
+        delay(2000);
+      }
+      
+      if (prev_obstacle_left_left == 1 && prev_obstacle_forward_left == 1 && obstacle_left == 1)
+      {
+        Serial.println("third");
+        moveFwd();
+        delay(2000);
+        stopMoving();
+        turn(90);
+        stopMoving();
+        prev_obstacle_forward_left = 0;
+        prev_obstacle_left_left = 0;
+      }
+
+      if (obstacle_forward == 1)
+      {
+        moveBck();
+        delay(fwdDelay);
+        fwdDelay -= 300;
+        fwdDelay = constrain(fwdDelay, 0, 1200);
+        stopMoving();
+        prev_obstacle_forward = obstacle_forward;
+        obstacle_forward = 0;
+      }
+
+      if (obstacle_left == 1)
+      {
+        prev_obstacle_left = obstacle_left;
+        obstacle_left = 0;
+      }
+
+      if (Serial.available() > 0) {
+        char temp = Serial.read();
+        obstacle = (int) temp;
+      }
+
+      if (obstacle == 70)
+      {
+        obstacle_forward = 1;
+        //Serial.println("front");
+      }
+      if (obstacle == 76)
+      {
+        obstacle_left = 1;
+      }
+      if (obstacle == 66)
+      {
+        obstacle_back = 1;
+      }
+      if (obstacle == 82)
+      {
+        obstacle_right = 1;
+      }
+
+      obstacle = 0;
+
+    }
   }
 
-  //stopMoving();
-  //delay(666);
-
 }
+
+void updateEncoderR()
+{
+  // Increment value for each pulse from encoder
+  encoderValueR++;
+}
+
+void updateEncoderL()
+{
+  // Increment value for each pulse from encoder
+  encoderValueL++;
+}
+
 
 void moveFwd()
 {
@@ -260,18 +353,6 @@ void moveBck()
   analogWrite(leftPWM, mSpeed);
 }
 
-
-void updateEncoderR()
-{
-  // Increment value for each pulse from encoder
-  encoderValueR++;
-}
-
-void updateEncoderL()
-{
-  // Increment value for each pulse from encoder
-  encoderValueL++;
-}
 
 void stopRight() {
   digitalWrite(rightDir, rightFWr);
@@ -376,14 +457,14 @@ void distanceForward(int distance) {
   analogWrite(rightPWM, mSpeed);
   digitalWrite(leftDir, leftFwr);
   analogWrite(leftPWM, mSpeed);
-  while (encoderValueL < distance || encoderValueR < distance){
-    if( encoderValueL < encoderValueR  ){
+  while (encoderValueL < distance || encoderValueR < distance) {
+    if ( encoderValueL < encoderValueR  ) {
       stopRight();
       while ( (encoderValueR - encoderValueL) > 0 );
       digitalWrite(rightDir, rightFWr);
       analogWrite(rightPWM, mSpeed);
     }
-    if( encoderValueL > encoderValueR  ){
+    if ( encoderValueL > encoderValueR  ) {
       stopLeft();
       while ( (encoderValueL - encoderValueR) > 0 );
       digitalWrite(leftDir, leftFwr);
@@ -401,14 +482,14 @@ void distanceBackward(int distance) {
   analogWrite(rightPWM, mSpeed);
   digitalWrite(leftDir, !leftFwr);
   analogWrite(leftPWM, mSpeed);
-  while (encoderValueL < distance || encoderValueR < distance){
-    if( encoderValueL < encoderValueR  ){
+  while (encoderValueL < distance || encoderValueR < distance) {
+    if ( encoderValueL < encoderValueR  ) {
       stopRight();
       while ( (encoderValueR - encoderValueL) > 0 );
       digitalWrite(rightDir, !rightFWr);
       analogWrite(rightPWM, mSpeed);
     }
-    if( encoderValueL > encoderValueR  ){
+    if ( encoderValueL > encoderValueR  ) {
       stopLeft();
       while ( (encoderValueL - encoderValueR) > 0 );
       digitalWrite(leftDir, !leftFwr);
@@ -490,28 +571,28 @@ int checkedUp = 0;
 void defaultLineFollower() {
   mSpeed = 40;
   if ( getBar(0) == 1 && getBar(1) == 1 && getBar(2) == 1 && getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 1 && getBar(6) == 1 && getBar(7) == 1) { //intersection
-    Serial.println("INTERSECTION ");
+    //Serial.println("intersection ");
     intersectionMove();
     state = 1;
     return;
   }
   else if ( getBar(3) == 1 && getBar(4) == 1) { //clear go forward
     if ( getBar(0) == 1 && getBar(1) == 1 && getBar(2) == 1) { //needs a sharp turn to right
-      Serial.println("SHARP RIGHT ");
+      //Serial.println("sharp right");
       if ( checkedUp < 12 ) {
         stopMoving();
         distanceForward(100);
         stopMoving();
         rawValue = mySensorBar.getRaw();
-        Serial.println("RIGHT INTERSECTION CHECKUP");
+        //Serial.println("right intersection checkup");
         for ( int i = 7; i >= 0; i-- ) {
-          Serial.print((rawValue >> i) & 0x01);
+          //Serial.print((rawValue >> i) & 0x01);
         }
         distanceBackward(100);
         stopMoving();
         checkedUp = 42;
-        if ( (getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0) || (getBar(3) == 1 && getBar(4) == 0 && getBar(5) == 0 && getBar(2) == 1) || (getBar(3) == 0 && getBar(4) == 1 && getBar(5) == 1 && getBar(2) == 0) ){ 
-          Serial.println("INTERSECTION");
+        if ( (getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0) || (getBar(3) == 1 && getBar(4) == 0 && getBar(5) == 0 && getBar(2) == 1) || (getBar(3) == 0 && getBar(4) == 1 && getBar(5) == 1 && getBar(2) == 0) ) {
+          //Serial.println("intersection");
           intersectionMove();
           state = 1;
           return;
@@ -540,21 +621,21 @@ void defaultLineFollower() {
       }
     }
     else if ( getBar(5) == 1 && getBar(6) == 1 && getBar(7) == 1 ) { //needs a sharp turn to left
-      Serial.println("SHARP LEFT ");
+      //Serial.println("sharp left ");
       if ( checkedUp < 12 ) {
         stopMoving();
         distanceForward(100);
         stopMoving();
         rawValue = mySensorBar.getRaw();
-        Serial.println("LEFT INTERSECTION CHECKUP");
+        //Serial.println("left intersection checkup");
         for ( int i = 7; i >= 0; i-- ) {
-          Serial.print((rawValue >> i) & 0x01);
+          //Serial.print((rawValue >> i) & 0x01);
         }
         distanceBackward(100);
         stopMoving();
         checkedUp = 42;
         if ( (getBar(3) == 1 && getBar(4) == 1 && getBar(5) == 0 && getBar(2) == 0) || (getBar(3) == 1 && getBar(4) == 0 && getBar(5) == 0 && getBar(2) == 1) || (getBar(3) == 0 && getBar(4) == 1 && getBar(5) == 1 && getBar(2) == 0) ) {
-          Serial.println("INTERSECTION");
+          //Serial.println("intersection");
           intersectionMove();
           state = 1;
           return;
@@ -583,12 +664,12 @@ void defaultLineFollower() {
       }
     }
     else {
-      Serial.println("FORWARD ");
+      //Serial.println("forward ");
       distanceForward(10);
     }
   }
   else if ( getBar(3) == 1 || getBar(4) == 1 ) { //align then go forward
-    Serial.println("ALIGN FORWARD ");
+    //Serial.println("align forward");
     if (getBar(3) == 1 ) { //find bar 4
       while ( getBar(4) == 0 ) {
         rawValue = mySensorBar.getRaw();
@@ -620,7 +701,7 @@ void defaultLineFollower() {
     }
   }
   else if ( getBar(0) == 0 && getBar(1) == 0 && getBar(2) == 0 && getBar(3) == 0 && getBar(4) == 0 && getBar(5) == 0 && getBar(6) == 0 && getBar(7) == 0 ) { //nothing
-    Serial.println("NOTHING DETECTED SHOULD BE A GAP ");
+    //Serial.println("nothing detected should be a gap");
     distanceForward(10);
   }
   mSpeed = 20;

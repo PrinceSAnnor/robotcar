@@ -35,14 +35,14 @@ namespace lds {
     double sumR1 = 0;
     double sumL2 = 0;
     double sumR2 = 0;
-    double value_maxF1 = 0.2;
+    double value_maxF1 = 0.35;
     double value_maxF2 = 0.35;
     double value_maxB1 = 0.5;
     double value_maxB2 = 0.4;
     double value_maxL1 = 0.2;
-    double value_maxL2 = 0.2;
-    double value_maxR1 = 0.2;
-    double value_maxR2 = 0.2;
+    double value_maxL2 = 0.3;
+    double value_maxR1 = 0.3;
+    double value_maxR2 = 0.3;
     int counterF1 = 0;
     int counterB1 = 0;
     int counterF2 = 0;
@@ -51,8 +51,6 @@ namespace lds {
     int counterR1 = 0;
     int counterL2 = 0;
     int counterR2 = 0;
-
-    a = clock() / CLOCKS_PER_SEC;
 
     while (!shutting_down_ && !got_scan) {
       // Wait until first data sync of frame: 0xFA, 0xA0
@@ -233,17 +231,15 @@ namespace lds {
                     counterL2 = 0;
                   }
                 }
-
+                if(!(instruction == "N"))
+                {
+                  printf("%c\n", instruction[0]);
+                  boost::asio::write(serial1, boost::asio::buffer(instruction, 1));
+                  instruction = "N";
+                }
               }
             }
           }
-          if(instruction != "N")
-          {
-            while (clock() / CLOCKS_PER_SEC - a < 1);
-            boost::asio::write(serial1, boost::asio::buffer(instruction, 2));
-            a = clock() / CLOCKS_PER_SEC;
-          }
-
         } else {
           start_count = 0;
         }
@@ -265,7 +261,7 @@ int main(int argc, char ** argv) {
   baud_rate = 230400;
 
   port1 = "/dev/ttyACM0";
-  baud_rate1 = 9600;
+  baud_rate1 = 4800;
 
   boost::asio::io_service io;
   boost::asio::io_service io1;
