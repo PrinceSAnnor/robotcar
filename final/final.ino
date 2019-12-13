@@ -215,6 +215,7 @@ void loop()
     //distance logic
     int orb;
     int counter_disp = 0;
+    distanceBackward(150);
     turnTank(90);
 
     delay(1300);
@@ -228,19 +229,29 @@ void loop()
 
     while (orb == 76)
     {
-      distanceForward(150);
+      distanceForward(130);
       counter_disp++;
       t = (int) serialFlush();
       orb = t;
       delay(1300);
     }
-    
+
+    if (orb != 76)
+      distanceForward(250);
+
     turn(-90);
 
     delay(1300);
     t = 'a';
     t = (int) serialFlush();
     orb = t;
+
+    if (orb != 76)
+    {
+      distanceForward(250);
+      orb = 76;
+    }
+      
     while (orb == 76)
     {
       distanceForward(190);
@@ -249,8 +260,13 @@ void loop()
       delay(1300);
     }
 
-    distanceForward(150);
+
+    distanceForward(130);
     turn(-90);
+    
+    if(counter_disp == 0)
+     counter_disp = 2;
+     
     distanceForward(150 * counter_disp);
 
   }
