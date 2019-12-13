@@ -108,7 +108,7 @@ void loop()
   if (Serial.available() > 0) {
     char temp = Serial.read();
     obstacle = (int) temp;
-    if (obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
+    if (obstacle == 70)
       state = 2;
   }
 
@@ -213,115 +213,56 @@ void loop()
   }
   else if ( state == 2 ) {
     //distance logic
-    //
-    //    unsigned long currentMillis123 = millis();
-    //    if (currentMillis123 - previousMillis >= 2000)
-    //      previousMillis = currentMillis123;
+    int orb;
+    int counter_disp = 0;
+    turnTank(90);
 
+    delay(1300);
+    char t = 'a';
+    t = (int) serialFlush();
+    orb = t;
+    //    Serial.print(orb);
+    //    Serial.print(t);
 
-    //      unsigned long currentMillis = millis();
-    //
-    //      if (currentMillis - previousMillis >= 400) {
-    //        previousMillis = currentMillis;
-    //        obstacle_forward = 0;
-    //        obstacle_left = 0;
-    //        obstacle_back = 0;
-    //        obstacle_right = 0;
-    //        Serial.println("reseting");
-    //      }
+    //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
 
-
-    bool isFwdDone = false;
-    int fwdDelay = 1000;
-    int prev_obstacle_forward_left = 0;
-    int prev_obstacle_left_left = 0;
-
-    while (1)
+    while (orb == 76)
     {
-
-      if (prev_obstacle_forward == 1 && obstacle_forward == 0)
-      {
-        Serial.println("first");
-        turn(90);
-        stopMoving();
-        prev_obstacle_forward = 0;
-        fwdDelay = 1000;
-        prev_obstacle_forward_left = 1;
-        moveFwd();
-        delay(1000);
-        stopMoving();
-      }
-
-      if (prev_obstacle_left == 1 && obstacle_left == 0)
-      {
-        Serial.println("second");
-        moveFwd();
-        delay(2000);
-        stopMoving();
-        prev_obstacle_left = 0;
-        turn(-90);
-        prev_obstacle_left_left = 0;
-        moveFwd();
-        delay(2000);
-      }
-      
-      if (prev_obstacle_left_left == 1 && prev_obstacle_forward_left == 1 && obstacle_left == 1)
-      {
-        Serial.println("third");
-        moveFwd();
-        delay(2000);
-        stopMoving();
-        turn(90);
-        stopMoving();
-        prev_obstacle_forward_left = 0;
-        prev_obstacle_left_left = 0;
-      }
-
-      if (obstacle_forward == 1)
-      {
-        moveBck();
-        delay(fwdDelay);
-        fwdDelay -= 300;
-        fwdDelay = constrain(fwdDelay, 0, 1200);
-        stopMoving();
-        prev_obstacle_forward = obstacle_forward;
-        obstacle_forward = 0;
-      }
-
-      if (obstacle_left == 1)
-      {
-        prev_obstacle_left = obstacle_left;
-        obstacle_left = 0;
-      }
-
-      if (Serial.available() > 0) {
-        char temp = Serial.read();
-        obstacle = (int) temp;
-      }
-
-      if (obstacle == 70)
-      {
-        obstacle_forward = 1;
-        //Serial.println("front");
-      }
-      if (obstacle == 76)
-      {
-        obstacle_left = 1;
-      }
-      if (obstacle == 66)
-      {
-        obstacle_back = 1;
-      }
-      if (obstacle == 82)
-      {
-        obstacle_right = 1;
-      }
-
-      obstacle = 0;
-
+      distanceForward(150);
+      counter_disp++;
+      t = (int) serialFlush();
+      orb = t;
+      delay(1300);
     }
+    
+    turn(-90);
+
+    delay(1300);
+    t = 'a';
+    t = (int) serialFlush();
+    orb = t;
+    while (orb == 76)
+    {
+      distanceForward(190);
+      t = (int) serialFlush();
+      orb = t;
+      delay(1300);
+    }
+
+    distanceForward(150);
+    turn(-90);
+    distanceForward(150 * counter_disp);
+
   }
 
+}
+
+char serialFlush() {
+  char t;
+  while (Serial.available() > 0) {
+    t  = Serial.read();
+  }
+  return t;
 }
 
 void updateEncoderR()

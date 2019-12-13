@@ -35,14 +35,14 @@ namespace lds {
     double sumR1 = 0;
     double sumL2 = 0;
     double sumR2 = 0;
-    double value_maxF1 = 0.35;
-    double value_maxF2 = 0.35;
+    double value_maxF1 = 0.6;
+    double value_maxF2 = 0.3;
     double value_maxB1 = 0.5;
     double value_maxB2 = 0.4;
-    double value_maxL1 = 0.2;
-    double value_maxL2 = 0.3;
-    double value_maxR1 = 0.3;
-    double value_maxR2 = 0.3;
+    double value_maxL1 = 0.44;
+    double value_maxL2 = 0.34;
+    double value_maxR1 = 0.34;
+    double value_maxR2 = 0.34;
     int counterF1 = 0;
     int counterB1 = 0;
     int counterF2 = 0;
@@ -163,12 +163,12 @@ namespace lds {
                     counterR2 = 0;
                   }
                 }
-                if (angle >= 155 && angle <= 200) {
+                if (angle >= 165 && angle <= 190) {
                   if (temp_range > 0.0) {
                     sumF1 = sumF1 + temp_range;
                     counterF1 = counterF1 + 1;
                   }
-                  if (angle == 155) {
+                  if (angle == 165) {
                     double avgF1 = sumF1 / counterF1;
                     if (avgF1 < value_maxF1) {
                       printf("front1=%f,", avgF1);
@@ -180,7 +180,7 @@ namespace lds {
                     counterF1 = 0;
                   }
                 }
-                if ((angle >= 135 && angle <= 155) || (angle >= 200 && angle <= 225)) {
+                if ((angle >= 135 && angle <= 165) || (angle >= 190 && angle <= 225)) {
                   if (temp_range > 0.0) {
                     sumF2 = sumF2 + temp_range;
                     counterF2 = counterF2 + 1;
@@ -197,12 +197,12 @@ namespace lds {
                     counterF2 = 0;
                   }
                 }
-                if (angle >= 238 && angle <= 260) {
+                if (angle >= 230 && angle <= 280) {
                   if (temp_range > 0.0) {
                     sumL1 = sumL1 + temp_range;
                     counterL1 = counterL1 + 1;
                   }
-                  if (angle == 238) {
+                  if (angle == 230) {
                     double avgL1 = sumL1 / counterL1;
                     if (avgL1 < value_maxL1) {
                       printf("left1=%f,", avgL1);
@@ -214,12 +214,12 @@ namespace lds {
                     counterL1 = 0;
                   }
                 }
-                if (angle >= 260 && angle <= 302) {
+                if (angle >= 280 && angle <= 302) {
                   if (temp_range > 0.0) {
                     sumL2 = sumL2 + temp_range;
                     counterL2 = counterL2 + 1;
                   }
-                  if (angle == 260) {
+                  if (angle == 280) {
                     double avgL2 = sumL2 / counterL2;
                     if (avgL2 < value_maxL2) {
                       printf("left2=%f,", avgL2);
