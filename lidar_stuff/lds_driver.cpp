@@ -17,7 +17,10 @@ namespace lds {
   }
 
   void LFCDLaser::poll() {
-    instruction = "N";
+    instruction_F = "N";
+    instruction_L = "N";
+    instruction_B = "N";
+    instruction_R = "N";
     uint8_t temp_char;
     uint8_t start_count = 0;
     bool got_scan = false;
@@ -35,14 +38,14 @@ namespace lds {
     double sumR1 = 0;
     double sumL2 = 0;
     double sumR2 = 0;
-    double value_maxF1 = 0.4;
-    double value_maxF2 = 0.3;
-    double value_maxB1 = 0.5;
+    double value_maxF1 = 0.32;
+    double value_maxF2 = 0.25;
+    double value_maxB1 = 0.4;
     double value_maxB2 = 0.4;
-    double value_maxL1 = 0.3;
-    double value_maxL2 = 0.1;
-    double value_maxR1 = 0.3;
-    double value_maxR2 = 0.1;
+    double value_maxL1 = 0.32; //our guy
+    double value_maxL2 = 0.2;
+    double value_maxR1 = 0.2;
+    double value_maxR2 = 0.65; //our guy
     int counterF1 = 0;
     int counterB1 = 0;
     int counterF2 = 0;
@@ -105,7 +108,7 @@ namespace lds {
                     if (avgB1 < value_maxB1) {
                       printf("back1=%f,", avgB1);
                       printf("\n");
-                      instruction = "B";
+                      instruction_B = "N";
                     }
                     sumB1 = 0.0;
                     avgB1 = 0.0;
@@ -122,31 +125,33 @@ namespace lds {
                     if (avgB2 < value_maxB2) {
                       printf("back2=%f,", avgB2);
                       printf("\n");
-                      instruction = "B";
+                      instruction_B = "N";
                     }
                     sumB2 = 0.0;
                     avgB2 = 0.0;
                     counterB2 = 0;
                   }
                 }
-                if (angle >= 58 && angle <= 80) {
+                if (angle >= 46 && angle <= 80) {
                   if (temp_range > 0.0) {
                     sumR1 = sumR1 + temp_range;
                     counterR1 = counterR1 + 1;
                   }
-                  if (angle == 58) {
+                  if (angle == 46) {
                     double avgR1 = sumR1 / counterR1;
                     if (avgR1 < value_maxR1) {
+                      /*
                       printf("right1=%f,", avgR1);
                       printf("\n");
-                      instruction = "R";
+                      instruction_R = "R";
+                      */
                     }
                     sumR1 = 0.0;
                     avgR1 = 0.0;
                     counterR1 = 0;
                   }
                 }
-                if (angle >= 80 && angle <= 122) {
+                if (angle >= 70 && angle <= 130) {
                   if (temp_range > 0.0) {
                     sumR2 = sumR2 + temp_range;
                     counterR2 = counterR2 + 1;
@@ -156,7 +161,7 @@ namespace lds {
                     if (avgR2 < value_maxR2) {
                       printf("right2=%f,", avgR2);
                       printf("\n");
-                      instruction = "R";
+                      instruction_R = "R";
                     }
                     sumR2 = 0.0;
                     avgR2 = 0.0;
@@ -173,7 +178,7 @@ namespace lds {
                     if (avgF1 < value_maxF1) {
                       printf("front1=%f,", avgF1);
                       printf("\n");
-                      instruction = "F";
+                      instruction_F = "F";
                     }
                     sumF1 = 0.0;
                     avgF1 = 0.0;
@@ -190,7 +195,7 @@ namespace lds {
                     if (avgF2 < value_maxF2) {
                       printf("front2=%f,", avgF2);
                       printf("\n");
-                      instruction = "F";
+                      instruction_F = "F";
                     }
                     sumF2 = 0.0;
                     avgF2 = 0.0;
@@ -207,7 +212,7 @@ namespace lds {
                     if (avgL1 < value_maxL1) {
                       printf("left1=%f,", avgL1);
                       printf("\n");
-                      instruction = "L";
+                      instruction_L = "L";
                     }
                     sumL1 = 0.0;
                     avgL1 = 0.0;
@@ -222,20 +227,40 @@ namespace lds {
                   if (angle == 270) {
                     double avgL2 = sumL2 / counterL2;
                     if (avgL2 < value_maxL2) {
+                      /*
                       printf("left2=%f,", avgL2);
                       printf("\n");
-                      instruction = "L";
+                      instruction_L = "L";
+                      */
                     }
                     sumL2 = 0.0;
                     avgL2 = 0.0;
                     counterL2 = 0;
                   }
                 }
-                if(!(instruction == "N"))
+                if(!(instruction_F == "N"))
                 {
-                  printf("%c\n", instruction[0]);
-                  boost::asio::write(serial1, boost::asio::buffer(instruction, 1));
-                  instruction = "N";
+                  printf("%c\n", instruction_F[0]);
+                  boost::asio::write(serial1, boost::asio::buffer(instruction_F, 1));
+                  instruction_F = "N";
+                }
+                if(!(instruction_L == "N"))
+                {
+                  printf("%c\n", instruction_L[0]);
+                  boost::asio::write(serial1, boost::asio::buffer(instruction_L, 1));
+                  instruction_L = "N";
+                }
+                if(!(instruction_B == "N"))
+                {
+                  printf("%c\n", instruction_B[0]);
+                  boost::asio::write(serial1, boost::asio::buffer(instruction_B, 1));
+                  instruction_B = "N";
+                }
+                if(!(instruction_R == "N"))
+                {
+                  printf("%c\n", instruction_R[0]);
+                  boost::asio::write(serial1, boost::asio::buffer(instruction_R, 1));
+                  instruction_R = "N";
                 }
               }
             }

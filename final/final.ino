@@ -55,15 +55,6 @@ uint8_t rightSensor = 0;
 int obstacle = 0;
 const long interval = 1000;
 unsigned long previousMillis = 0;
-int obstacle_forward = 0;
-int prev_obstacle_forward = 0;
-int prev_obstacle_left = 0;
-int prev_obstacle_back = 0;
-int prev_obstacle_right = 0;
-
-int obstacle_left = 0;
-int obstacle_back = 0;
-int obstacle_right = 0;
 
 void setup()
 {
@@ -104,7 +95,7 @@ void setup()
 
 void loop()
 {
-  state = 3;
+
   if (Serial.available() > 0) {
     char temp = Serial.read();
     obstacle = (int) temp;
@@ -214,61 +205,362 @@ void loop()
   else if ( state == 2 ) {
     //distance logic
     int orb;
+    int orb_counter = 0;
     int counter_disp = 0;
-    distanceBackward(150);
-    turnTank(90);
 
-    delay(1300);
+    //distanceForward(20);
+
     char t = 'a';
-    t = (int) serialFlush();
-    orb = t;
-    //    Serial.print(orb);
-    //    Serial.print(t);
-
-    //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
-
-    while (orb == 76)
-    {
-      distanceForward(130);
-      counter_disp++;
-      t = (int) serialFlush();
-      orb = t;
-      delay(1300);
-    }
-
-    if (orb != 76)
-      distanceForward(250);
-
-    turn(-90);
-
     delay(1300);
-    t = 'a';
-    t = (int) serialFlush();
+
+    t = (int) serialFindFlush('R', 'L');
     orb = t;
 
-    if (orb != 76)
+    distanceBackward(170);
+
+    if (orb == 76)
     {
-      distanceForward(250);
-      orb = 76;
-    }
-      
-    while (orb == 76)
-    {
-      distanceForward(190);
-      t = (int) serialFlush();
-      orb = t;
+      turnTank(90);
       delay(1300);
+      t = (int) serialFindFlush11('L');
+      orb = t;
+      //    Serial.print(orb);
+      //    Serial.print(t);
+
+      //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
+
+      if (orb != 76)
+      {
+        distanceForward(50);
+      }
+
+      orb_counter = 0;
+
+      while (orb == 76)
+      {
+        orb_counter++;
+        distanceForward(50);
+        counter_disp++;
+        t = (int) serialFindFlush123('L');
+        orb = t;
+        delay(1300);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(200);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(200);
+
+      }
+
+      orb_counter = 0;
+
+      turn(-90);
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('L');
+      orb = t;
+
+      if (orb != 76)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      while (orb == 76)
+      {
+        orb_counter++;
+        distanceForward(50);
+        t = (int) serialFindFlush123('L');
+        orb = t;
+        delay(1500);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(600);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(400);
+      }
+      else if (orb_counter == 2)
+      {
+        distanceForward(150);
+      }
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('L');
+      orb = t;
+
+      if (orb_counter <= 2 && orb == 76)
+      {
+        orb_counter = 3;
+
+        while (orb == 76)
+        {
+          orb_counter++;
+          distanceForward(50);
+          t = (int) serialFindFlush123('L');
+          orb = t;
+          delay(1500);
+        }
+      }
+
+      if (orb_counter == 4)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      distanceForward(60);
+      turn(-90);
+
+      if (counter_disp == 0)
+        counter_disp = 2;
+
+      distanceForward(60 * counter_disp);
+
+      turnTank(130);
+    }
+
+    else if (orb == 82)
+    {
+      turnTank(-90);
+      delay(1300);
+      t = (int) serialFindFlush11('R');
+      orb = t;
+      //    Serial.print(orb);
+      //    Serial.print(t);
+
+      //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
+
+      if (orb != 82)
+      {
+        distanceForward(200);
+      }
+
+      orb_counter = 0;
+
+      while (orb == 82)
+      {
+        orb_counter++;
+        distanceForward(50);
+        counter_disp++;
+        t = (int) serialFindFlush123('R');
+        orb = t;
+        delay(1300);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(600);
+        delay(100);
+        distanceForward(600);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(250);
+        delay(100);
+        distanceForward(250);
+
+      }
+      else if (orb_counter == 2)
+      {
+        distanceForward(150);
+      }
+
+      orb_counter = 0;
+
+      turn(90);
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('R');
+      orb = t;
+
+      if (orb != 82)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      while (orb == 82)
+      {
+        orb_counter++;
+        distanceForward(70);
+        t = (int) serialFindFlush123('R');
+        orb = t;
+        delay(1500);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(600);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(250);
+      }
+      else if (orb_counter == 2)
+      {
+        distanceForward(150);
+      }
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('R');
+      orb = t;
+
+      if (orb_counter <= 2 && orb == 82)
+      {
+        orb_counter = 3;
+
+        while (orb == 82)
+        {
+          orb_counter++;
+          distanceForward(70);
+          t = (int) serialFindFlush123('R');
+          orb = t;
+          delay(1500);
+        }
+      }
+
+      if (orb_counter == 4)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      distanceForward(400);
+      turn(90);
+
+      if (counter_disp == 0)
+        counter_disp = 2;
+
+      distanceForward(60 * counter_disp);
+
+      turnTank(-45);
+    }
+
+    else
+    {
+      turnTank(90);
+      delay(1300);
+      t = (int) serialFindFlush11('L');
+      orb = t;
+      //    Serial.print(orb);
+      //    Serial.print(t);
+
+      //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
+
+      if (orb != 76)
+      {
+        distanceForward(50);
+      }
+
+      orb_counter = 0;
+
+      while (orb == 76)
+      {
+        orb_counter++;
+        distanceForward(50);
+        counter_disp++;
+        t = (int) serialFindFlush123('L');
+        orb = t;
+        delay(1300);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(200);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(200);
+
+      }
+
+      orb_counter = 0;
+
+      turn(-90);
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('L');
+      orb = t;
+
+      if (orb != 76)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      while (orb == 76)
+      {
+        orb_counter++;
+        distanceForward(50);
+        t = (int) serialFindFlush123('L');
+        orb = t;
+        delay(1500);
+      }
+
+      if (orb_counter == 0)
+      {
+        distanceForward(600);
+      }
+      else if (orb_counter == 1)
+      {
+        distanceForward(400);
+      }
+      else if (orb_counter == 2)
+      {
+        distanceForward(150);
+      }
+
+      delay(1300);
+      t = 'a';
+      t = (int) serialFindFlush123('L');
+      orb = t;
+
+      if (orb_counter <= 2 && orb == 76)
+      {
+        orb_counter = 3;
+
+        while (orb == 76)
+        {
+          orb_counter++;
+          distanceForward(50);
+          t = (int) serialFindFlush123('L');
+          orb = t;
+          delay(1500);
+        }
+      }
+
+      if (orb_counter == 4)
+      {
+        distanceForward(400);
+      }
+
+      orb_counter = 0;
+      distanceForward(60);
+      turn(-90);
+
+      if (counter_disp == 0)
+        counter_disp = 2;
+
+      distanceForward(60 * counter_disp);
+
+      turnTank(130);
     }
 
 
-    distanceForward(130);
-    turn(-90);
-    
-    if(counter_disp == 0)
-     counter_disp = 2;
-     
-    distanceForward(150 * counter_disp);
-
+    state = 0;
   }
 
 }
@@ -278,6 +570,55 @@ char serialFlush() {
   while (Serial.available() > 0) {
     t  = Serial.read();
   }
+  return t;
+}
+
+char serialFindFlush123(char val1) {
+  char t;
+  int counter = 0;
+
+  while (Serial.available() > 0) {
+    t  = Serial.read();
+    if (t == val1)
+    {
+      break;
+    }
+  }
+
+  while (Serial.available() > 0) {
+    char ttemp  = Serial.read();
+    counter++;
+    if (counter > 100)
+    {
+      break;
+    }
+  }
+  return t;
+}
+
+char serialFindFlush(char val1, char val2) {
+  char t;
+  while (Serial.available() > 0) {
+    t  = Serial.read();
+    if (t == val1 || t == val2 )
+    {
+      break;
+    }
+  }
+
+  return t;
+}
+
+char serialFindFlush11(char val1) {
+  char t;
+  while (Serial.available() > 0) {
+    t  = Serial.read();
+    if (t == val1)
+    {
+      break;
+    }
+  }
+
   return t;
 }
 

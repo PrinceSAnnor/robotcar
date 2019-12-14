@@ -28,6 +28,9 @@ private:
   uint32_t baud_rate1; ///< @brief The baud rate for the serial connection
   boost::asio::serial_port serial1;
 
-  std::string instruction;
+  std::string instruction_F;
+  std::string instruction_R;
+  std::string instruction_L;
+  std::string instruction_B;
 };
 }
