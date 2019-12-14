@@ -229,6 +229,8 @@ void loop()
 
       //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
 
+      distanceForward(50);
+
       if (orb != 76)
       {
         distanceForward(50);
@@ -459,6 +461,8 @@ void loop()
 
       //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
 
+      distanceForward(50);
+      
       if (orb != 76)
       {
         distanceForward(50);
