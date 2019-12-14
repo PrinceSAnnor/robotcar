@@ -38,14 +38,14 @@ namespace lds {
     double sumR1 = 0;
     double sumL2 = 0;
     double sumR2 = 0;
-    double value_maxF1 = 0.32;
+    double value_maxF1 = 0.3;
     double value_maxF2 = 0.25;
     double value_maxB1 = 0.4;
     double value_maxB2 = 0.4;
-    double value_maxL1 = 0.32; //our guy
-    double value_maxL2 = 0.2;
-    double value_maxR1 = 0.2;
-    double value_maxR2 = 0.65; //our guy
+    double value_maxL1 = 0.41; //our guy
+    double value_maxL2 = 0.3;
+    double value_maxR1 = 0.65;
+    double value_maxR2 = 0.55; //our guy
     int counterF1 = 0;
     int counterB1 = 0;
     int counterF2 = 0;
@@ -140,11 +140,9 @@ namespace lds {
                   if (angle == 46) {
                     double avgR1 = sumR1 / counterR1;
                     if (avgR1 < value_maxR1) {
-                      /*
                       printf("right1=%f,", avgR1);
                       printf("\n");
                       instruction_R = "R";
-                      */
                     }
                     sumR1 = 0.0;
                     avgR1 = 0.0;
@@ -227,11 +225,9 @@ namespace lds {
                   if (angle == 270) {
                     double avgL2 = sumL2 / counterL2;
                     if (avgL2 < value_maxL2) {
-                      /*
                       printf("left2=%f,", avgL2);
                       printf("\n");
                       instruction_L = "L";
-                      */
                     }
                     sumL2 = 0.0;
                     avgL2 = 0.0;
@@ -286,7 +282,7 @@ int main(int argc, char ** argv) {
   baud_rate = 230400;
 
   port1 = "/dev/ttyACM0";
-  baud_rate1 = 4800;
+  baud_rate1 = 9600;
 
   boost::asio::io_service io;
   boost::asio::io_service io1;

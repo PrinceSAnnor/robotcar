@@ -20,6 +20,8 @@ SensorBar mySensorBar(SX1509_ADDRESS);
 
 uint8_t state = 0;
 
+int optimal_distance_delay = 1000;
+
 int lRSpeed = 15;
 int mSpeed = 20;
 int leftFwr = LOW;
@@ -80,7 +82,7 @@ void setup()
   mySensorBar.setBarStrobe();//only turn on IR during reads
   mySensorBar.clearInvertBits();//Default dark on light
   uint8_t returnStatus = mySensorBar.begin();
-  Serial.begin(4800);
+  Serial.begin(9600);
   if (returnStatus)
   {
     //Serial.println("sx1509 ok");
@@ -211,7 +213,7 @@ void loop()
     //distanceForward(20);
 
     char t = 'a';
-    delay(1300);
+    delay(optimal_distance_delay);
 
     t = (int) serialFindFlush('R', 'L');
     orb = t;
@@ -221,7 +223,7 @@ void loop()
     if (orb == 76)
     {
       turnTank(90);
-      delay(1300);
+      delay(optimal_distance_delay);
       t = (int) serialFindFlush11('L');
       orb = t;
       //    Serial.print(orb);
@@ -245,7 +247,7 @@ void loop()
         counter_disp++;
         t = (int) serialFindFlush123('L');
         orb = t;
-        delay(1300);
+        delay(optimal_distance_delay);
       }
 
       if (orb_counter == 0)
@@ -262,14 +264,14 @@ void loop()
 
       turn(-90);
 
-      delay(1300);
+      delay(optimal_distance_delay);
       t = 'a';
       t = (int) serialFindFlush123('L');
       orb = t;
 
       if (orb != 76)
       {
-        distanceForward(400);
+        distanceForward(350);
       }
 
       orb_counter = 0;
@@ -279,23 +281,23 @@ void loop()
         distanceForward(50);
         t = (int) serialFindFlush123('L');
         orb = t;
-        delay(1500);
+        delay(optimal_distance_delay);
       }
 
       if (orb_counter == 0)
       {
-        distanceForward(600);
+        distanceForward(400);
       }
       else if (orb_counter == 1)
       {
-        distanceForward(400);
+        distanceForward(300);
       }
       else if (orb_counter == 2)
       {
         distanceForward(150);
       }
 
-      delay(1300);
+      delay(optimal_distance_delay);
       t = 'a';
       t = (int) serialFindFlush123('L');
       orb = t;
@@ -331,10 +333,10 @@ void loop()
       turnTank(130);
     }
 
-    else if (orb == 82)
+    else
     {
       turnTank(-90);
-      delay(1300);
+      delay(optimal_distance_delay);
       t = (int) serialFindFlush11('R');
       orb = t;
       //    Serial.print(orb);
@@ -356,20 +358,17 @@ void loop()
         counter_disp++;
         t = (int) serialFindFlush123('R');
         orb = t;
-        delay(1300);
+        delay(optimal_distance_delay);
+
       }
 
       if (orb_counter == 0)
       {
-        distanceForward(600);
-        delay(100);
-        distanceForward(600);
+        distanceForward(200);
       }
       else if (orb_counter == 1)
       {
-        distanceForward(250);
-        delay(100);
-        distanceForward(250);
+        distanceForward(200);
 
       }
       else if (orb_counter == 2)
@@ -381,14 +380,14 @@ void loop()
 
       turn(90);
 
-      delay(1300);
+      delay(optimal_distance_delay);
       t = 'a';
       t = (int) serialFindFlush123('R');
       orb = t;
 
       if (orb != 82)
       {
-        distanceForward(400);
+        distanceForward(250);
       }
 
       orb_counter = 0;
@@ -403,21 +402,26 @@ void loop()
 
       if (orb_counter == 0)
       {
-        distanceForward(600);
+        distanceForward(200);
       }
       else if (orb_counter == 1)
       {
-        distanceForward(250);
+        distanceForward(150);
       }
       else if (orb_counter == 2)
       {
-        distanceForward(150);
+        distanceForward(80);
       }
 
-      delay(1300);
+      delay(optimal_distance_delay);
       t = 'a';
       t = (int) serialFindFlush123('R');
       orb = t;
+
+      if (orb != 82)
+      {
+        distanceForward(150);
+      }
 
       if (orb_counter <= 2 && orb == 82)
       {
@@ -435,11 +439,11 @@ void loop()
 
       if (orb_counter == 4)
       {
-        distanceForward(400);
+        distanceForward(200);
       }
 
       orb_counter = 0;
-      distanceForward(400);
+      distanceForward(300);
       turn(90);
 
       if (counter_disp == 0)
@@ -449,132 +453,9 @@ void loop()
 
       turnTank(-45);
     }
-
-    else
-    {
-      turnTank(90);
-      delay(1300);
-      t = (int) serialFindFlush11('L');
-      orb = t;
-      //    Serial.print(orb);
-      //    Serial.print(t);
-
-      //(obstacle == 70 | obstacle == 76 || obstacle == 66 || obstacle == 82)
-
-      distanceForward(50);
-      
-      if (orb != 76)
-      {
-        distanceForward(50);
-      }
-
-      orb_counter = 0;
-
-      while (orb == 76)
-      {
-        orb_counter++;
-        distanceForward(50);
-        counter_disp++;
-        t = (int) serialFindFlush123('L');
-        orb = t;
-        delay(1300);
-      }
-
-      if (orb_counter == 0)
-      {
-        distanceForward(200);
-      }
-      else if (orb_counter == 1)
-      {
-        distanceForward(200);
-
-      }
-
-      orb_counter = 0;
-
-      turn(-90);
-
-      delay(1300);
-      t = 'a';
-      t = (int) serialFindFlush123('L');
-      orb = t;
-
-      if (orb != 76)
-      {
-        distanceForward(400);
-      }
-
-      orb_counter = 0;
-      while (orb == 76)
-      {
-        orb_counter++;
-        distanceForward(50);
-        t = (int) serialFindFlush123('L');
-        orb = t;
-        delay(1500);
-      }
-
-      if (orb_counter == 0)
-      {
-        distanceForward(600);
-      }
-      else if (orb_counter == 1)
-      {
-        distanceForward(400);
-      }
-      else if (orb_counter == 2)
-      {
-        distanceForward(150);
-      }
-
-      delay(1300);
-      t = 'a';
-      t = (int) serialFindFlush123('L');
-      orb = t;
-
-      if (orb_counter <= 2 && orb == 76)
-      {
-        orb_counter = 3;
-
-        while (orb == 76)
-        {
-          orb_counter++;
-          distanceForward(50);
-          t = (int) serialFindFlush123('L');
-          orb = t;
-          delay(1500);
-        }
-      }
-
-      if (orb_counter == 4)
-      {
-        distanceForward(400);
-      }
-
-      orb_counter = 0;
-      distanceForward(60);
-      turn(-90);
-
-      if (counter_disp == 0)
-        counter_disp = 2;
-
-      distanceForward(60 * counter_disp);
-
-      turnTank(130);
-    }
-
-
     state = 0;
   }
 
-}
-
-char serialFlush() {
-  char t;
-  while (Serial.available() > 0) {
-    t  = Serial.read();
-  }
-  return t;
 }
 
 char serialFindFlush123(char val1) {

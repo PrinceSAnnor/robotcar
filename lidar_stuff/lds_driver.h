@@ -31,6 +31,6 @@ private:
   std::string instruction_F;
   std::string instruction_R;
   std::string instruction_L;
-  std::string instruction_B;
+  std::string instruction_B; //back
 };
 }
